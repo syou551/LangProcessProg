@@ -1,47 +1,59 @@
 #include "scan.h"
 #include <ctype.h>
 
-// digit scaning flag
-int digit_scan;
+// line num
+char string_attr[MAXSTRSIZE];
+int num_attr;
 
 int scan(){
     char cbuf, prev;
     int strlen = 0;
-    digit_scan = 0;
     int code = 0;
 
     //When code is 0, skip this letter
-    for(cbuf = read_char();code <= 0;cbuf = read_char()){
+    //FIXME: line num ope mut be added
+    for(cbuf = read_char();code == 0;cbuf = read_char()){
         if(isspace(cbuf)){
             code = 0;
         }else if(isalpha(cbuf)){
             code = get_tokencode(0,cbuf);
         }else if(isdigit(cbuf)){
             code = get_tokencode(1,cbuf);
+        }else if(cbuf == '\r' || cbuf == '\n'){
+            code = check_linebreak(cbuf);
         }else{
             switch(cbuf){
                 //comment
                 case '{':
-                    for(cbuf = read_char();cbuf != '}';cbuf = read_char()){};
+                    for(cbuf = read_char();cbuf != '}';cbuf = read_char()){
+                        if(cbuf == EOF || cbuf == '\0') return EOF;
+                    };
                     code = 0;
                     break;
-                case '/': 
+                case '/':
                     cbuf = read_char();
                     if(cbuf != '*') return error("Invalid symbol array!(Comment format)");
                     prev = cbuf; 
-                    for(cbuf = read_char();prev != '*' && cbuf != '/';cbuf = read_char()){
+                    for(cbuf = read_char();prev != '*' || cbuf != '/';cbuf = read_char()){
                         prev = cbuf;
+                        if(cbuf == EOF || cbuf == '\0') return EOF;
                     }
                     code = 0;
                     break;
                 case '\'':
                     code = check_string_format(cbuf);
-                default: 
+                    break;
+                case EOF:
+                    code = EOF;
+                    break;
+                default:
                     code = get_tokencode_symbol(cbuf);
+                    //printf("%c %d",cbuf,code);
+                    break;
             }
         }
-
     }
+    ungetc(cbuf,fp);
     return code;
 }
 
@@ -51,11 +63,8 @@ int scan(){
 int get_tokencode(int mode, char _cbuf){
     char cbuf = _cbuf;
     int strlen = 0;
-    int maxlen = mode ? MAXSTRSIZE-1 : 6;
-    if(mode == 1){
-        digit_scan = 1;
-    }
-    for(;isalpha(cbuf);cbuf = read_char()){
+    int maxlen = mode ? 6 : MAXSTRSIZE-1;
+    for(;isalpha(cbuf) || isdigit(cbuf);cbuf = read_char()){
         if(strlen >= maxlen) return error("Word length is too long!");
         string_attr[strlen++] = cbuf;
     }
@@ -63,25 +72,23 @@ int get_tokencode(int mode, char _cbuf){
     ungetc(cbuf,fp);
     int code = check_strbuf(string_attr,strlen,mode);
     //FIXME: In case like 10case , How move?
-    if(code > 0) return code;
-    else return 0;
+    return code;
 }
 
 int get_tokencode_symbol(char _cbuf){
     char cbuf = _cbuf;
     int code;
     int strlen = 0;
-
     string_attr[strlen++] = cbuf;
     cbuf = read_char();
     // 2 symbol
-    if(cbuf == '<'){
+    if(_cbuf == '<'){
         if(cbuf == '>' || cbuf == '=') {
             string_attr[strlen++] = cbuf;
         }else{
             ungetc(cbuf,fp);
         }
-    }else if(cbuf == '>' || cbuf == ':'){
+    }else if(_cbuf == '>' || _cbuf == ':'){
         if(cbuf == '=') {
             string_attr[strlen++] = cbuf;
         }else{
@@ -89,6 +96,7 @@ int get_tokencode_symbol(char _cbuf){
         }
     }else ungetc(cbuf,fp);
     code = check_strbuf(string_attr,strlen,0);
+    //printf("\n%d %s",code,string_attr);
     //when code == TNAME, not symbol
     if(code == TNAME)return error("Invalid symbol input! (cant't use this symbol)");
     return code;
@@ -99,17 +107,22 @@ int check_string_format(char _cbuf){
     int strlen = 0;
     while(1){
         string_attr[strlen++] = cbuf;
+        if(strlen > MAXSTRSIZE-1)return error("ERROR: word is too long!");
         cbuf = read_char();
+
         if(cbuf == '\''){
             string_attr[strlen++] = cbuf;
             cbuf = read_char();
             if(cbuf == '\''){
                 // continue string
-            }else {
-               ungetc(cbuf,fp);
-               break;
+            }else if(cbuf == '\r' || cbuf == '\n'){
+                return error("Invalid string format!(Can't line break)");
+            }else{
+                ungetc(cbuf,fp);
+                break;
             }
-            //FIXME; EOF の場合
+        }else if(cbuf == EOF){
+            return EOF;
         }
     }
     return TSTRING;
@@ -131,5 +144,29 @@ int check_strbuf(char *stringbuf,int strlen,int mode){
     for(i = 0;i < KEYWORDSIZE;i++){
         if(strcmp(key[i].keyword,stringbuf) == 0)return key[i].keytoken;
     }
+    for(i = 0;i < SYMBOLSIZE;i++){
+        if(strcmp(sym[i].symbol,stringbuf) == 0)return sym[i].symtoken;
+    }
     return TNAME;
+}
+
+int check_linebreak(char _cbuf){
+    char cbuf = read_char();
+
+    linenum++;
+    if(_cbuf == '\n'){
+        if(cbuf != '\r'){
+            ungetc(cbuf,fp);
+        }
+    }else if(_cbuf == '\r'){
+        if(cbuf != '\n'){
+            ungetc(cbuf,fp);
+        }
+    }
+        printf("%d",linenum);
+    return 0;
+}
+
+int get_linenum(void){
+    return linenum;
 }

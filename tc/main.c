@@ -13,6 +13,14 @@ struct KEY key[KEYWORDSIZE] = {
   {"var", TVAR},         {"while", TWHILE},     {"write", TWRITE},
   {"writeln", TWRITELN}};
 
+/* symbol list */
+struct SYM sym[SYMBOLSIZE] = {
+  {"+", TPLUS}, {"-", TMINUS}, {"*", TSTAR},    {"=", TEQUAL},
+  {"<>", TNOTEQ}, {"<", TLE},   {"<=", TLEEQ},   {">", TGR},
+  {">=", TGREQ} , {"(", TLPAREN}, {")", TRPAREN},{"[", TLSQPAREN},
+  {"]", TRSQPAREN},{":=", TASSIGN},{".", TDOT},  {",",  TCOMMA}, 
+  {":", TCOLON},   {";", TSEMI}};
+
 /* Token counter */
 int numtoken[NUMOFTOKEN + 1];
 
@@ -47,9 +55,10 @@ int main(int nc, char *np[]) {
     numtoken[token]++;
   }
   end_scan();
-  if(token == S_ERROR) return 0;
+  //if(token == S_ERROR) return 0;
   /* 作成する部分:カウントした結果を出力する */
   print_numtoken(numtoken,tokenstr);
+  printf("line: %d",get_linenum());
   return 0;
 }
 

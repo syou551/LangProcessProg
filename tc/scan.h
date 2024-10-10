@@ -63,6 +63,8 @@
 
 #define KEYWORDSIZE	28
 
+#define SYMBOLSIZE 18
+
 #define S_ERROR  -1
 
 extern struct KEY {
@@ -71,7 +73,10 @@ extern struct KEY {
 } key[KEYWORDSIZE];
 
 // add variable declear
-
+extern struct SYM {
+	char * symbol;
+	int symtoken;
+} sym[SYMBOLSIZE];
 
 extern int error(char *mes);
 
@@ -89,9 +94,11 @@ int check_strbuf(char *stringbuf,int strlen,int mode);
 int get_tokencode(int mode,char _cbuf);
 int get_tokencode_symbol(char _cbuf);
 int check_string_format(char _cbuf);
+int check_linebreak(char _cbuf);
 
 extern int num_attr;
 extern char string_attr[MAXSTRSIZE];
 extern FILE *fp;
+extern int linenum;
 
 #endif

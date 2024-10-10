@@ -85,8 +85,10 @@ extern void init_counter(int *counter_array);
 extern void print_numtoken(int *counter_array, char *tokenstr[]);
 extern char read_char(void);
 
-int check_strbuf(char *stringbuf,int strlen);
+int check_strbuf(char *stringbuf,int strlen,int mode);
 int get_tokencode(int mode,char _cbuf);
+int get_tokencode_symbol(char _cbuf);
+int check_string_format(char _cbuf);
 
 extern int num_attr;
 extern char string_attr[MAXSTRSIZE];

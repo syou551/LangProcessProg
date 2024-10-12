@@ -1,7 +1,6 @@
 #include "scan.h"
 #include <ctype.h>
 
-// line num
 char string_attr[MAXSTRSIZE];
 int num_attr;
 
@@ -19,14 +18,15 @@ int scan(){
             code = get_tokencode(0,cbuf);
         }else if(isdigit(cbuf)){
             code = get_tokencode(1,cbuf);
-        }else if(cbuf == '\r' || cbuf == '\n'){
-            code = check_linebreak(cbuf);
+        }else if(cbuf == '\n'){
+            code = 0;
         }else{
             switch(cbuf){
                 //comment
                 case '{':
                     for(cbuf = read_char();cbuf != '}';cbuf = read_char()){
-                        if(cbuf == EOF || cbuf == '\0') return EOF;
+                        if(cbuf == '\n') continue;
+                        else if(cbuf == EOF || cbuf == '\0') return EOF;
                     };
                     code = 0;
                     break;
@@ -36,7 +36,8 @@ int scan(){
                     prev = cbuf; 
                     for(cbuf = read_char();prev != '*' || cbuf != '/';cbuf = read_char()){
                         prev = cbuf;
-                        if(cbuf == EOF || cbuf == '\0') return EOF;
+                        if(cbuf == '\n') continue;
+                        else if(cbuf == EOF || cbuf == '\0') return EOF;
                     }
                     code = 0;
                     break;
@@ -53,7 +54,9 @@ int scan(){
             }
         }
     }
-    ungetc(cbuf,fp);
+    if(cbuf == '\n'){
+        // not put back buffer to stream
+    }else ungetc(cbuf,fp);
     return code;
 }
 
@@ -68,8 +71,11 @@ int get_tokencode(int mode, char _cbuf){
         if(strlen >= maxlen) return error("Word length is too long!");
         string_attr[strlen++] = cbuf;
     }
+    if(cbuf == '\n'){
+        // not put back buffer to stream
+    }
     //put back buffer to stream
-    ungetc(cbuf,fp);
+    else ungetc(cbuf,fp);
     int code = check_strbuf(string_attr,strlen,mode);
     //FIXME: In case like 10case , How move?
     return code;
@@ -85,15 +91,21 @@ int get_tokencode_symbol(char _cbuf){
     if(_cbuf == '<'){
         if(cbuf == '>' || cbuf == '=') {
             string_attr[strlen++] = cbuf;
+        }else if(cbuf == '\n'){
+        // not put back buffer to stream
         }else{
             ungetc(cbuf,fp);
         }
     }else if(_cbuf == '>' || _cbuf == ':'){
         if(cbuf == '=') {
             string_attr[strlen++] = cbuf;
+        }else if(cbuf == '\n'){
+        // not put back buffer to stream
         }else{
             ungetc(cbuf,fp);
         }
+    }else if(cbuf == '\n'){
+        // not put back buffer to stream
     }else ungetc(cbuf,fp);
     code = check_strbuf(string_attr,strlen,0);
     //printf("\n%d %s",code,string_attr);
@@ -115,7 +127,7 @@ int check_string_format(char _cbuf){
             cbuf = read_char();
             if(cbuf == '\''){
                 // continue string
-            }else if(cbuf == '\r' || cbuf == '\n'){
+            }else if(cbuf == '\n'){
                 return error("Invalid string format!(Can't line break)");
             }else{
                 ungetc(cbuf,fp);
@@ -148,25 +160,4 @@ int check_strbuf(char *stringbuf,int strlen,int mode){
         if(strcmp(sym[i].symbol,stringbuf) == 0)return sym[i].symtoken;
     }
     return TNAME;
-}
-
-int check_linebreak(char _cbuf){
-    char cbuf = read_char();
-
-    linenum++;
-    if(_cbuf == '\n'){
-        if(cbuf != '\r'){
-            ungetc(cbuf,fp);
-        }
-    }else if(_cbuf == '\r'){
-        if(cbuf != '\n'){
-            ungetc(cbuf,fp);
-        }
-    }
-        printf("%d",linenum);
-    return 0;
-}
-
-int get_linenum(void){
-    return linenum;
 }

@@ -67,17 +67,18 @@ int get_tokencode(int mode, char _cbuf){
     char cbuf = _cbuf;
     int strlen = 0;
     int maxlen = mode ? 6 : MAXSTRSIZE-1;
-    for(;isalpha(cbuf) || isdigit(cbuf);cbuf = read_char()){
+    for(;(mode == 0 && isalpha(cbuf)) || isdigit(cbuf);cbuf = read_char()){
         if(strlen >= maxlen) return error("Word length is too long!");
         string_attr[strlen++] = cbuf;
     }
-    if(cbuf == '\n'){
+    if(mode == 1 && isalpha(cbuf)) return error("Invalid number input!");
+    else if(cbuf == '\n'){
         // not put back buffer to stream
     }
     //put back buffer to stream
     else ungetc(cbuf,fp);
     int code = check_strbuf(string_attr,strlen,mode);
-    //FIXME: In case like 10case , How move?
+    if(code == TNAME) id_countup(string_attr);
     return code;
 }
 

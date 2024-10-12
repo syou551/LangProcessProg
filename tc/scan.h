@@ -81,9 +81,13 @@ extern struct SYM {
 extern int error(char *mes);
 
 extern int init_scan(char *filename);
+extern void init_idtab();
 extern int scan(void);
 extern int get_linenum(void);
 extern void end_scan(void);
+extern void release_idtab(void);
+extern void id_countup(char *np);
+extern void print_idtab(void);
 
 // add function declear
 extern void init_counter(int *counter_array);

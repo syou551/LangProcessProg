@@ -5,3 +5,6 @@
 !makefile
 *.o
 *.a
+*.gcov
+*.gcda
+*.gcno

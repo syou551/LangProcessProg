@@ -17,4 +17,6 @@ void print_numtoken(int *counter_array, char **tokenstr){
         printf("\"%s\"\t%d\n",tokenstr[i],counter_array[i]);
         if(i == TNAME) print_idtab();
     }
+    
+    printf("%d\n",get_linenum());
 }

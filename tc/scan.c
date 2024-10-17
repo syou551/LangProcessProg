@@ -10,16 +10,14 @@ int scan(){
     int code = 0;
 
     //When code is 0, skip this letter
-    //FIXME: line num ope mut be added
     for(cbuf = read_char();code == 0;cbuf = read_char()){
         if(isspace(cbuf)){
+            //include '\n'
             code = 0;
         }else if(isalpha(cbuf)){
             code = get_tokencode(0,cbuf);
         }else if(isdigit(cbuf)){
             code = get_tokencode(1,cbuf);
-        }else if(cbuf == '\n'){
-            code = 0;
         }else{
             switch(cbuf){
                 //comment
@@ -49,7 +47,6 @@ int scan(){
                     break;
                 default:
                     code = get_tokencode_symbol(cbuf);
-                    //printf("%c %d",cbuf,code);
                     break;
             }
         }
@@ -109,7 +106,7 @@ int get_tokencode_symbol(char _cbuf){
         // not put back buffer to stream
     }else ungetc(cbuf,fp);
     code = check_strbuf(string_attr,strlen,0);
-    //printf("\n%d %s",code,string_attr);
+    
     //when code == TNAME, not symbol
     if(code == TNAME)return error("Invalid symbol input! (cant't use this symbol)");
     return code;
@@ -122,20 +119,22 @@ int check_string_format(char _cbuf){
         string_attr[strlen++] = cbuf;
         if(strlen > MAXSTRSIZE-1)return error("ERROR: word is too long!");
         cbuf = read_char();
-
-        if(cbuf == '\''){
+        
+        if(cbuf == '\n') return error("Invalid string format!(line break in string)");
+        else if(cbuf == '\''){
             string_attr[strlen++] = cbuf;
             cbuf = read_char();
             if(cbuf == '\''){
                 // continue string
             }else if(cbuf == '\n'){
-                return error("Invalid string format!(Can't line break)");
+                // not put back buffer to stream
+                break;
             }else{
                 ungetc(cbuf,fp);
                 break;
             }
         }else if(cbuf == EOF){
-            return EOF;
+            return error("Invalid string format!(EOF while reading string)");
         }
     }
     return TSTRING;

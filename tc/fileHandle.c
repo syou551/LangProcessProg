@@ -4,11 +4,19 @@ static char rbuf;
 FILE *fp;
 int linenum;
 
+//fp error handle is not executed
+/* File 'fileHandle.c'
+Lines executed:100.00% of 20
+Branches executed:100.00% of 16
+Taken at least once:87.50% of 16
+Calls executed:100.00% of 6
+Creating 'fileHandle.c.gcov' */
+
 // open source file
 int init_scan(char *filename){
     fp = fopen(filename, "r");
     linenum = 1 ;
-    if(fp == 0) return -1;
+    if(fp <= 0) return -1;
     else return 0;
 }
 

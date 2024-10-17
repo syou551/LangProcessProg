@@ -45,7 +45,6 @@ int main(int nc, char *np[]) {
   }
   if (init_scan(np[1]) < 0) {
     error("Cannot open input file.");
-	  end_scan();
     return 0;
   }
   /* 作成する部分：トークンカウント用の配列？を初期化する */

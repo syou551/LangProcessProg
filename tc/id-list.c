@@ -23,7 +23,13 @@ struct ID *search_idtab(char *np) { /* search the name pointed by np */
 void id_countup(char *np) { /* Register and count up the name pointed by np */
   struct ID *p;
   char *cp;
-
+  //Here exception handling is not executed 
+  /* File 'id-list.c'
+    Lines executed:100.00% of 32
+    Branches executed:100.00% of 12
+    Taken at least once:91.67% of 12
+    Calls executed:100.00% of 3
+    Creating 'id-list.c.gcov */
   if ((p = search_idtab(np)) != NULL)
     p->count++;
   else {

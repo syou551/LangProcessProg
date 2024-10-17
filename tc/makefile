@@ -6,7 +6,7 @@ OBJS=counter.o fileHandle.o id-list.o main.o scan.o
 all: tc
 
 tc: ${OBJS}
-	${CC} -coverage -o $@ $^
+	${CC} -o $@ $^
 #	${CC} ${CFLAGS} -o $@ $^ ${MYLIB}
 
 test: tc
@@ -14,7 +14,6 @@ test: tc
 	gcc -coverage -o tc *.o
 	./test.sh
 	gcov -b *.gcda
-
 
 retest:
 	rm -f *.gcda

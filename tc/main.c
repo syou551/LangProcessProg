@@ -54,7 +54,6 @@ int main(int nc, char *np[]) {
     numtoken[token]++;
   }
   end_scan();
-  //if(token == S_ERROR) return 0;
   /* 作成する部分:カウントした結果を出力する */
   print_numtoken(numtoken,tokenstr);
   

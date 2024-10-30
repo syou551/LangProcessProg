@@ -8,4 +8,5 @@
 *.gcov
 *.gcda
 *.gcno
+.DS_Store
 test_results

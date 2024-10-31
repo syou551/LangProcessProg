@@ -3,6 +3,7 @@
 
 #include "scan.h"
 
+//parser function
 extern int parse_program();
 extern int parse_block();
 extern int parse_var_dec();
@@ -35,5 +36,15 @@ extern int parse_constant();
 
 extern int parse_output_format();
 
+//prety printer
+extern void print_symbol_keyword(int token);
+extern void print_name_string(char* name);
+extern void print_linebreak();
+extern void print_space();
+extern void print_indent();
+extern void set_indent();
+extern void remove_indent();
+
+extern int indent;
 
 #endif

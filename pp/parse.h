@@ -25,4 +25,15 @@ extern int parse_return_statement();
 extern int parse_input_statement();
 extern int parse_output_statement();
 
+extern int parse_variable();
+extern int parse_expression();
+extern int parse_expressions();
+extern int parse_simple_expression();
+extern int parse_term();
+extern int parse_factor();
+extern int parse_constant();
+
+extern int parse_output_format();
+
+
 #endif

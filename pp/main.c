@@ -1,4 +1,5 @@
 #include "scan.h"
+#include "parse.h"
 
 // #region global var
 /* keyword list */
@@ -51,20 +52,14 @@ int main(int nc, char *np[]) {
     error("Cannot open input file.");
     return 0;
   }
-  /* 作成する部分：トークンカウント用の配列を初期化する */
-  init_counter(numtoken);
-  while ((token = scan()) >= 0) {
-    numtoken[token]++;
-  }
+  /* 作成する部分：構文解析を行う */
+  parse_program();
+
   end_scan();
-  /* 作成する部分:カウントした結果を出力する */
-  print_numtoken(numtoken,tokenstr);
-  
-  release_idtab();
   return 0;
 }
 
 int error(char *mes) {
-  fprintf(stderr, "Line: %4d ERROR: %s.\n", get_linenum(), mes);
+  fprintf(stderr, "Line: %4d %s.\n", get_linenum(), mes);
   return S_ERROR;
 }

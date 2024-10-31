@@ -75,7 +75,7 @@ int get_tokencode(int mode, char _cbuf){
     //put back buffer to stream
     else ungetc(cbuf,fp);
     int code = check_strbuf(string_attr,strlen,mode);
-    if(code == TNAME) id_countup(string_attr);
+    //if(code == TNAME) id_countup(string_attr);
     return code;
 }
 
@@ -131,6 +131,7 @@ int check_string_format(char _cbuf){
                 break;
             }else{
                 ungetc(cbuf,fp);
+                string_attr[strlen] = '\0';
                 break;
             }
         }else if(cbuf == EOF){

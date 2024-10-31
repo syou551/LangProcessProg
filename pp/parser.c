@@ -57,10 +57,12 @@ int parse_block(){
 int parse_compound_statement(){
     if(token != TBEGIN) return error("ERROR: expect \"begin\" next to \";\"");
     print_symbol_keyword(token);
-    print_linebreak();
-    set_indent();
-    print_indent();
     token = scan();
+    if(token != TEND) {
+        print_linebreak();
+        set_indent();
+        print_indent();
+    }
     if(parse_statement() == S_ERROR) return S_ERROR;
     //token = scan(); // Is this statement required? assignment: No if:No while:No
     while(token == TSEMI){
@@ -287,6 +289,8 @@ int parse_variable(){
         token = scan();
         if(parse_expression() == S_ERROR)return S_ERROR;
         if(token != TRSQPAREN)return error("ERROR: expect \"]\" next to expression");
+        print_space();
+        print_symbol_keyword(token);
         token = scan();
     }
     return 0;

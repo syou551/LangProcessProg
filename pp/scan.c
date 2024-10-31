@@ -68,8 +68,7 @@ int get_tokencode(int mode, char _cbuf){
         if(strlen >= maxlen) return error("Word length is too long!");
         string_attr[strlen++] = cbuf;
     }
-    if(mode == 1 && isalpha(cbuf)) return error("Invalid number input!");
-    else if(cbuf == '\n'){
+    if(cbuf == '\n'){
         // not put back buffer to stream
     }
     //put back buffer to stream

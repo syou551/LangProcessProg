@@ -11,14 +11,15 @@ pp: ${OBJS}
 
 test: pp
 	gcc -coverage -c *.c
-	gcc -coverage -o tc *.o
-	./test.sh
+	gcc -coverage -o pp *.o
+	bash test.sh
 	gcov -b *.gcda
 
 retest:
 	rm -f *.gcda
 	rm -f *.gcno
 	rm -f *.gcov
+	make clean
 	make test
 
 clean:

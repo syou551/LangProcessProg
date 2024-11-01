@@ -62,9 +62,15 @@ int parse_compound_statement(){
         print_linebreak();
         set_indent();
         print_indent();
+    }else{
+        print_linebreak();
+        print_indent();
+        print_symbol_keyword(token);
+
+        return 0; 
     }
     if(parse_statement() == S_ERROR) return S_ERROR;
-    //token = scan(); // Is this statement required? assignment: No if:No while:No
+
     while(token == TSEMI){
         print_symbol_keyword(token);
         token = scan();
@@ -83,7 +89,6 @@ int parse_compound_statement(){
     return 0;
 }
 
-// when this func has ended, what value is in token?
 int parse_statement(){
     if(token == TNAME) return parse_assign_statement();
     else if(token == TIF) return parse_if_statement();
@@ -116,7 +121,7 @@ int parse_if_statement(){
 
     token = scan();
     if(parse_statement() == S_ERROR) return S_ERROR;
-    //token = scan(); // Is this statement required? assignment: No
+
     remove_indent();
     if(token == TELSE){
         print_linebreak();
@@ -243,7 +248,7 @@ int parse_output_statement(){
 
 int parse_output_format(){
     //If string length is more than 1, the token is string
-    if(token == TSTRING && strlen(string_attr) > 1 && strcmp(string_attr,"''''") != 0){
+    if(token == TSTRING && strlen(string_attr) > 3 && strcmp(string_attr,"''''") != 0){
         //print
         print_space();
         print_name_string(string_attr);
@@ -448,7 +453,7 @@ int parse_type(){
     }else if(token == TINTEGER || token == TBOOLEAN || token == TCHAR) {
         print_space();
         print_symbol_keyword(token);
-    }else error("ERROR: invarid type declare(expect integer, boolean, char or array)");
+    }else return error("ERROR: invarid type declare(expect integer, boolean, char or array)");
     return 0;
 }
 

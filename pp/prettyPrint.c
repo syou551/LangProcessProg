@@ -7,16 +7,19 @@ void print_symbol_keyword(int token){
     for(i = 0;i < KEYWORDSIZE;i++){
         if(token == key[i].keytoken){
             printf("%s",key[i].keyword);
+
+            fflush(stdout);
             return;
         }
     }
     for(i = 0;i < SYMBOLSIZE; i++){
         if(token == sym[i].symtoken){
             printf("%s",sym[i].symbol);
-            return;
+
+            fflush(stdout);
+            //return; comment out for C2 coverage 
         }
     }
-    fflush(stdout);
 }
 
 void print_name_string(char* name){
@@ -43,6 +46,7 @@ void print_indent(){
     int i;
     for(int i = 0;i < indent;i++){
         printf("    ");
-        fflush(stdout);
     }
+
+    fflush(stdout);
 }

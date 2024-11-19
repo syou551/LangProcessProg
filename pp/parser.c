@@ -390,7 +390,9 @@ int parse_factor(){
         print_space();
         print_symbol_keyword(token);
         token = scan();
-    }else return error("ERROR: expect factor");
+    }else {
+        return error("ERROR: expect factor");
+    }
     return 0;
 }
 //#endregion

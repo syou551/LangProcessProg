@@ -1,12 +1,9 @@
 #!/bin/bash
+
 #get file list
 filelist=$(ls ./sample)
-
+#run ./tc for each file
 for file in $filelist
 do
-    ./pp ./sample/$file
+    echo $file,
 done
-
-
-./pp ./sample/1.txt
-./pp

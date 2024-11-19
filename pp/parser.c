@@ -396,7 +396,8 @@ int parse_factor(){
 //#endregion
 
 //#region variable
-int parse_variable_names_and_type(){
+
+int parse_var_dec(){
     if(parse_variable_names() == S_ERROR) return S_ERROR;
     if(token != TCOLON) return error("ERROR: expect \":\" next to variable names");
     print_space();
@@ -408,16 +409,21 @@ int parse_variable_names_and_type(){
     if(token != TSEMI) return error("ERROR: expect \";\" next to type");
     print_symbol_keyword(token);
     print_linebreak(); 
-    return 0;
-}
-
-int parse_var_dec(){
-    if(parse_variable_names_and_type() == S_ERROR) return S_ERROR;
 
     token = scan();
     while(token == TNAME){
         print_indent();
-        if(parse_variable_names_and_type() == S_ERROR) return S_ERROR;
+        if(parse_variable_names() == S_ERROR) return S_ERROR;
+        if(token != TCOLON) return error("ERROR: expect \":\" next to variable names");
+        print_space();
+        print_symbol_keyword(token);
+
+        token = scan();
+        if(parse_type() == S_ERROR) return S_ERROR;
+        token = scan();
+        if(token != TSEMI) return error("ERROR: expect \";\" next to type");
+        print_symbol_keyword(token);
+        print_linebreak(); 
         token = scan();
     }
     return 0;

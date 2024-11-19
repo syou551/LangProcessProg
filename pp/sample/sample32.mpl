@@ -1,4 +1,5 @@
 program IfstTC;	{sample32}
+{formal parameters with 2 parameters}
 procedure test(n:integer; x:char);
 begin
 end;

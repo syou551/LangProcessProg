@@ -552,7 +552,6 @@ int parse_formal_parameters(){
     if(parse_type() == S_ERROR) return S_ERROR;
     token = scan();
     while(token == TSEMI){
-        print_space();
         print_symbol_keyword(token);
         print_space();
         token = scan();

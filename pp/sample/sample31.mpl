@@ -1,5 +1,5 @@
-program ;
-var n,m:int;
+program hoge;
+var n,m:char;
 begin
-
+n := 
 end.

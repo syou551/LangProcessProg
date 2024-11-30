@@ -271,19 +271,21 @@ int parse_output_format(){
 
 int parse_assign_statement(){
     //lepf part is equal to variable
-    if(parse_variable() == S_ERROR)return S_ERROR;
+    int type, exptype;
+    if((type = parse_variable()) == S_ERROR)return S_ERROR;
     if(token != TASSIGN) return error("ERROR: expect \":=\" next to variable");
     print_space();
     print_symbol_keyword(token);
     print_space();
 
     token = scan();
-    if(parse_expression()==S_ERROR)return S_ERROR;
+    if((exptype = parse_expression())==S_ERROR)return S_ERROR;
+    if(type != exptype) return error("ERROR: variable type don't match expression type");
     return 0;
 }
-
+//add search variable type func 
 int parse_variable(){
-    //if(parse_variable_name() == S_ERROR)return S_ERROR; jimei
+    int type;
     print_name_string(string_attr);
     token = scan();
     if(token == TLSQPAREN){
@@ -291,6 +293,7 @@ int parse_variable(){
         print_symbol_keyword(token);
 
         print_space();
+        type = TARRAY;
         token = scan();
         if(parse_expression() == S_ERROR)return S_ERROR;
         if(token != TRSQPAREN)return error("ERROR: expect \"]\" next to expression");
@@ -298,7 +301,7 @@ int parse_variable(){
         print_symbol_keyword(token);
         token = scan();
     }
-    return 0;
+    return type;
 }
 
 int parse_expressions(){
@@ -314,51 +317,67 @@ int parse_expressions(){
 }
 
 int parse_expression(){
-    if(parse_simple_expression() == S_ERROR) return S_ERROR;
+    int type, tmp;
+    if((type = parse_simple_expression()) == S_ERROR) return S_ERROR;
     while(token == TEQUAL || token == TNOTEQ || token == TLE || token == TLEEQ || token == TGR || token == TGREQ){
         print_space();
         print_symbol_keyword(token);
         print_space();
         token = scan();
-        if(parse_simple_expression() == S_ERROR) return S_ERROR;
+        if((tmp = parse_simple_expression()) == S_ERROR) return S_ERROR;
+        if(tmp != type) return error("ERROR: expression type don't match");
     }
-    return 0;
+    return type;
 }
-
+//add return st.
+//from here
 int parse_simple_expression(){
+    int type = 0 , termtype;
     if(token == TPLUS || token == TMINUS){
         print_symbol_keyword(token);
         print_space();
+        type = TINTEGER;
         token = scan();
     }
-    if(parse_term() == S_ERROR) return S_ERROR;
+    if((termtype = parse_term()) == S_ERROR) return S_ERROR;
+    if(type == TINTEGER && termtype != type) {
+        return error("ERROR: + or - is operator for integer");
+    }
+    type = termtype;
     while(token == TPLUS || token == TMINUS || token == TOR){
+        if(get_demand_type(token) != type) return error("ERROR: operator is incorrect");
         print_space();
         print_symbol_keyword(token);
         print_space();
         token = scan();
-        if(parse_term() == S_ERROR) return S_ERROR;
+        if((termtype = parse_term()) == S_ERROR) return S_ERROR;
+        if(termtype != type) return error("ERROR: term type don't match demand type");
     }
-    return 0;
+    return type;
 }
 
 int parse_term(){
-    if(parse_factor() == S_ERROR) return S_ERROR;
+    int type, tmp;
+    if((type = parse_factor()) == S_ERROR) return S_ERROR;
     while(token == TSTAR || token == TDIV || token == TAND){
+        if(get_demand_type(token) != type) return error("ERROR: operator incorrect");
         print_space();
         print_symbol_keyword(token);
         print_space();
         token = scan();
-        if(parse_factor() == S_ERROR) return S_ERROR;
+        if((tmp = parse_factor()) == S_ERROR) return S_ERROR;
+        if(tmp != type) return error("ERROR: incorrect factor type");
     }
-    return 0;
+    return type;
 }
 
 int parse_factor(){
+    int type, tmp;
     if(token == TNAME){
-        if(parse_variable() == S_ERROR) return S_ERROR;
+        if((type = parse_variable()) == S_ERROR) return S_ERROR;
     }else if(token == TNUMBER || token == TFALSE || token == TTRUE || token == TSTRING){
         //print
+        type = get_demand_type(token);
         if(token == TNUMBER || token == TSTRING) print_name_string(string_attr);
         else print_symbol_keyword(token);
         token = scan();
@@ -366,7 +385,7 @@ int parse_factor(){
         print_symbol_keyword(token);
         print_space();
         token = scan();
-        if(parse_expression() == S_ERROR)return S_ERROR;
+        if((type = parse_expression()) == S_ERROR)return S_ERROR;
         if(token != TRPAREN) return error("ERROR: expect \")\" next to expression");
         print_space();
         print_symbol_keyword(token);
@@ -375,9 +394,11 @@ int parse_factor(){
         print_symbol_keyword(token);
         print_space();
         token = scan();
-        if(parse_factor() == S_ERROR) return S_ERROR;
+        if((type = parse_factor())== S_ERROR) return S_ERROR;
+        if(type != TBOOLEAN) return error("ERROR: next \"not\" is required boolean");
     }else if(token == TINTEGER || token == TBOOLEAN || token == TCHAR){
         print_symbol_keyword(token);
+        type = token;
         token = scan();
         if(token != TLPAREN) return error("ERROR: expect \"(\" next to standard type");
         print_space();
@@ -385,7 +406,8 @@ int parse_factor(){
         
         print_space();
         token = scan();
-        if(parse_expression() == S_ERROR) return S_ERROR;
+        if((tmp = parse_expression()) == S_ERROR) return S_ERROR;
+        if(tmp != TINTEGER || tmp != TBOOLEAN || tmp != TCHAR) return error("ERROR: cast is required standard type expression");
         if(token != TRPAREN) return error("ERROR: exprect \")\" next to expression");
         print_space();
         print_symbol_keyword(token);
@@ -393,7 +415,7 @@ int parse_factor(){
     }else {
         return error("ERROR: expect factor");
     }
-    return 0;
+    return type;
 }
 //#endregion
 
@@ -572,3 +594,19 @@ int parse_formal_parameters(){
 }
 
 //#endregion
+
+int get_demand_type(int token){
+    switch(token){
+        case TAND:
+        case TOR: 
+        case TTRUE:
+        case TFALSE: return TBOOLEAN; break;
+        case TPLUS:
+        case TMINUS:
+        case TSTAR:
+        case TDIV: 
+        case TNUMBER: TINTEGER; break;
+        case TSTRING: return TCHAR; break;
+        default : return S_ERROR; break;
+    }
+}

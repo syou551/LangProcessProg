@@ -36,6 +36,9 @@ extern int parse_constant();
 
 extern int parse_output_format();
 
+//type check
+extern int get_demand_type(int token);
+
 //prety printer
 extern void print_symbol_keyword(int token);
 extern void print_name_string(char* name);

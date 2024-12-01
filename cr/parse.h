@@ -38,6 +38,11 @@ extern int parse_output_format();
 
 //type check
 extern int get_demand_type(int token);
+extern int search_variable_type(char *np);
+extern int search_variable_type_local(char *np);
+extern int get_mode();
+extern void set_mode_local();
+extern void set_mode_global();
 
 //prety printer
 extern void print_symbol_keyword(int token);

@@ -287,13 +287,18 @@ int parse_assign_statement(){
 int parse_variable(){
     int type;
     print_name_string(string_attr);
+    switch(get_mode()){
+        case 1: type = search_variable_type_local(string_attr);break;
+        case 0: type = search_variable_type(string_attr);break;
+    }
+    if(type == S_ERROR) return error("ERROR: Not found variable type");
     token = scan();
     if(token == TLSQPAREN){
         print_space();
         print_symbol_keyword(token);
 
         print_space();
-        type = TARRAY;
+        if(type != TARRAY)return error("ERROR: this variable isn't array type");
         token = scan();
         if(parse_expression() == S_ERROR)return S_ERROR;
         if(token != TRSQPAREN)return error("ERROR: expect \"]\" next to expression");
@@ -407,7 +412,7 @@ int parse_factor(){
         print_space();
         token = scan();
         if((tmp = parse_expression()) == S_ERROR) return S_ERROR;
-        if(tmp != TINTEGER || tmp != TBOOLEAN || tmp != TCHAR) return error("ERROR: cast is required standard type expression");
+        if(tmp != TINTEGER && tmp != TBOOLEAN && tmp != TCHAR) return error("ERROR: cast is required standard type expression");
         if(token != TRPAREN) return error("ERROR: exprect \")\" next to expression");
         print_space();
         print_symbol_keyword(token);

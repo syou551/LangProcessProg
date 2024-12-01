@@ -65,6 +65,9 @@
 
 #define SYMBOLSIZE 18
 
+#define LOCAL 1
+#define GLOBAL 0
+
 #define S_ERROR  -1
 
 extern struct KEY {
@@ -86,8 +89,9 @@ extern int scan(void);
 extern int get_linenum(void);
 extern void end_scan(void);
 extern void release_idtab(void);
+extern void id_add_variable(char *np);
 extern void id_add_info(char *np, int typetoken, int deflinenum);
-extern void id_add_info_local(char *np, char *processnp, int typetoken, int deflinenum);
+void id_add_info_local(char *np, char *processnp, int typetoken, int deflinenum);
 extern void id_add_element_info(char *np, int typetoken, int arraysize);
 extern void id_add_element_info_local(char *np, int typetoken, int arraysize);
 extern void id_add_param_info(char *np, int typetoken);

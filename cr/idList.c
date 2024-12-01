@@ -1,4 +1,4 @@
-﻿#include "scan.h"
+﻿#include "parse.h"
 
 struct TYPE
 {
@@ -24,6 +24,9 @@ struct ID
   struct LINE *reflinep;
   struct ID *nextp;
 } *globalidroot, *localidroot;
+
+static int mode = GLOBAL;
+static char *processname = NULL;
 
 void init_idtab()
 { /* Initialise the table */
@@ -56,13 +59,11 @@ struct ID *search_idtab_local(char *np)
   return (NULL);
 }
 
-void id_add_info(char *np, int typetoken, int deflinenum)
-{
+void id_add_variable(char *np){
   struct ID *p;
   struct TYPE *t;
   struct LINE *l;
   char *cp;
-  char *procp;
   if ((p = (struct ID *)malloc(sizeof(struct ID))) == NULL)
   {
     error("Cannot malloc for p in id_add_info");
@@ -86,12 +87,39 @@ void id_add_info(char *np, int typetoken, int deflinenum)
   strcpy(cp, np);
   p->name = cp;
   p->processname = NULL;
-  p->ispara = 0;
+  p->ispara = get_mode();
 
   p->typ = t;
+  p->deflinenum = S_ERROR;
+  if(get_mode() == GLOBAL){
+    p->nextp = globalidroot;
+    globalidroot = p;
+  }else if(get_mode() == LOCAL){
+    p->nextp = localidroot;
+    localidroot = p;
+  }
+  t->ttype = S_ERROR;
+  t->arraysize = 0;
+  t->etp = NULL;
+  t->paratp = NULL;
+}
+
+void id_add_info(char *np, int typetoken, int deflinenum)
+{
+  struct ID *p = NULL;
+  switch(mode){
+    case 0 : p = search_idtab(np);break;
+    case 1 : id_add_info_local(np, processname, typetoken, deflinenum);return;
+  }
+  if(p == NULL) {
+    error("ERROR: internal error(variable isn't added table)");
+    return;
+  }
+  struct TYPE *t = p->typ;
+  struct LINE *l = p->reflinep;
+  char *cp;
+
   p->deflinenum = deflinenum;
-  p->nextp = globalidroot;
-  globalidroot = p;
   t->ttype = typetoken;
   t->arraysize = 0;
   t->etp = NULL;
@@ -100,45 +128,26 @@ void id_add_info(char *np, int typetoken, int deflinenum)
 
 void id_add_info_local(char *np, char *processnp, int typetoken, int deflinenum)
 {
-  struct ID *p;
-  struct TYPE *t;
-  struct LINE *l;
-  char *cp;
-  char *procp;
-  if ((p = (struct ID *)malloc(sizeof(struct ID))) == NULL)
-  {
-    error("Cannot malloc for p in id_add_info_local");
+  struct ID *p = NULL;
+  switch(mode){
+    case 0 : p = search_idtab(np);break;
+    case 1 : id_add_info_local(np, processname, typetoken, deflinenum);return;
+  }
+  if(p == NULL) {
+    error("ERROR: internal error(variable isn't added table)");
     return;
   }
-  if ((cp = (char *)malloc(strlen(np) + 1)) == NULL)
-  {
-    error("Cannot malloc for cp in id_add_info_local");
-    return;
-  }
+  struct TYPE *t = p->typ;
+  struct LINE *l = p->reflinep;
+  char *cp, *procp;
   if ((procp = (char *)malloc(strlen(processnp) + 1)) == NULL)
   {
     error("Cannot malloc for procp in id_add_info_local");
     return;
   }
-  if ((t = (struct TYPE *)malloc(sizeof(struct TYPE))) == NULL)
-  {
-    error("Cannot malloc for t in id_add_info_local");
-    return;
-  }
-  if ((l = (struct LINE *)malloc(sizeof(struct LINE))) == NULL)
-  {
-    error("Cannot malloc for l in id_add_info_local");
-    return;
-  }
-  strcpy(cp, np);
-  p->name = cp;
   strcpy(procp, processnp);
   p->processname = procp;
-  p->ispara = 1;
-  p->typ = t;
   p->deflinenum = deflinenum;
-  p->nextp = globalidroot;
-  globalidroot = p;
   t->ttype = typetoken;
   t->arraysize = 0;
   t->etp = NULL;
@@ -284,7 +293,37 @@ void id_add_reflinenum_local(char *np, int linenum)
   }
 }
 
+int search_variable_type(char *np){
+  struct ID *iddatap = search_idtab(np);
+  //NULL check
+  if(iddatap == NULL) return S_ERROR;
+  else if(iddatap->typ == NULL) return S_ERROR;
 
+  return iddatap->typ->ttype;
+}
+
+int search_variable_type_local(char *np){
+  struct ID *iddatap = search_idtab_local(np);
+  //NULL check
+  if(iddatap == NULL) return S_ERROR;
+  else if(iddatap->typ == NULL) return S_ERROR;
+
+  return iddatap->typ->ttype;
+}
+
+//mode get set
+//for secure mode manage
+void set_mode_local(){
+  mode = LOCAL;
+}
+
+void set_mode_global(){
+  mode = GLOBAL;
+}
+
+int get_mode(){
+  return mode;
+}
     /* void id_countup(char *np) {  Register and count up the name pointed by np
       struct ID *p;
       char *cp;

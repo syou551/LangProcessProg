@@ -1,4 +1,5 @@
 ﻿#include "parse.h"
+#include "idlist.h"
 
 struct TYPE
 {
@@ -129,11 +130,7 @@ void id_add_info(char *np, int typetoken, int deflinenum)
 void id_add_info_local(char *np, char *processnp, int typetoken, int deflinenum)
 {
   struct ID *p = NULL;
-  switch(mode){
-    case 0 : p = search_idtab(np);break;
-    case 1 : id_add_info_local(np, processname, typetoken, deflinenum);return;
-  }
-  if(p == NULL) {
+  if((p = search_idtab(np)) == NULL) {
     error("ERROR: internal error(variable isn't added table)");
     return;
   }
@@ -158,7 +155,11 @@ void id_add_element_info(char *np, int typetoken, int arraysize)
 {
   struct ID *p;
   struct TYPE *t;
-  if ((p = search_idtab(np)) != NULL)
+  switch(mode){
+    case 0 : p = search_idtab(np);break;
+    case 1 : id_add_element_info_local(np, typetoken, arraysize);return;
+  }
+  if (p != NULL)
   {
     if ((t = (struct TYPE *)malloc(sizeof(struct TYPE))) == NULL)
     {

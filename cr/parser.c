@@ -1,4 +1,5 @@
 #include "parse.h"
+#include "idlist.h"
 
 int token;
 int exist_iteration;
@@ -53,7 +54,7 @@ int parse_block(){
 }
 
 //#region statement
-
+//参照行の追加処理と型チェック
 int parse_compound_statement(){
     if(token != TBEGIN) return error("ERROR: expect \"begin\" next to \";\"");
     print_symbol_keyword(token);
@@ -426,70 +427,134 @@ int parse_factor(){
 
 //#region variable
 
+int set_variable_name(struct VNAME **root, int len){
+    struct VNAME *newname = NULL;
+    if((newname = (struct VNAME *)malloc(sizeof(struct VNAME))) == NULL) return error("ERROR: failure get space of variable");
+    newname->name = NULL;
+    newname->np = *root;
+    if((newname->name = (char *)malloc(sizeof(len+1))) == NULL) return error("ERROR:failure get space of variable");
+    strcpy(newname->name,string_attr);
+    *root = newname;
+    return 0;
+}
+
+void release_variable_name(struct VNAME **root){
+    struct VNAME *p;
+    if(*root == NULL) return;
+    do{
+        p = *root;
+        *root = p->np;
+        free(p->name);
+        free(p);
+    }while((*root) != NULL);
+}
+
+void add_variable_info(struct VNAME *root, int type){
+    struct VNAME *p = NULL;
+    p = root;
+    while(p != NULL){
+        id_add_info(p->name,type,get_linenum());
+        p = p->np;
+    }
+}
+
+void add_variable_info_array(struct VNAME *root, int type, struct ARRAYINFO *ainfo){
+    struct VNAME *p = NULL;
+    p = root;
+    while(p != NULL){
+        id_add_info(p->name,type,get_linenum());
+        id_add_alement_info(p->name,ainfo->etype,ainfo->size);
+        p = p->np;
+    }
+}
+
 int parse_var_dec(){
-    if(parse_variable_names() == S_ERROR) return S_ERROR;
+    struct VNAME *p = NULL;
+    int type;
+    if(parse_variable_names(&p) == S_ERROR) return S_ERROR;
     if(token != TCOLON) return error("ERROR: expect \":\" next to variable names");
     print_space();
     print_symbol_keyword(token);
-
     token = scan();
-    if(parse_type() == S_ERROR) return S_ERROR;
+    //if array type, get array size and etype
+    struct ARRAYINFO ainfo;
+    if((type = parse_type(&ainfo)) == S_ERROR) return S_ERROR;
+
+    if(type == TARRAY)add_variable_info_array(p,type,&ainfo);
+    else add_variable_info(p,type);
+
     token = scan();
     if(token != TSEMI) return error("ERROR: expect \";\" next to type");
     print_symbol_keyword(token);
     print_linebreak(); 
+    release_variable_name(&p);
 
     token = scan();
     while(token == TNAME){
         print_indent();
-        if(parse_variable_names() == S_ERROR) return S_ERROR;
+        if(parse_variable_names(&p) == S_ERROR) return S_ERROR;
         if(token != TCOLON) return error("ERROR: expect \":\" next to variable names");
         print_space();
         print_symbol_keyword(token);
 
         token = scan();
-        if(parse_type() == S_ERROR) return S_ERROR;
+        if((type = parse_type(&ainfo)) == S_ERROR) return S_ERROR;
+        
+        if(type == TARRAY)add_variable_info_array(p,type,&ainfo);
+        else add_variable_info(p,type);
+        
         token = scan();
         if(token != TSEMI) return error("ERROR: expect \";\" next to type");
         print_symbol_keyword(token);
-        print_linebreak(); 
+        print_linebreak();
+        
+        release_variable_name(&p); 
         token = scan();
     }
     return 0;
 }
 
-int parse_variable_names(){
-    if(parse_variable_name() == S_ERROR) return S_ERROR;
+int parse_variable_names(struct VNAME **p){
+    int len;
+    struct VNAME *name_root = NULL;
+    if((len = parse_variable_name()) == S_ERROR) return S_ERROR;
+    if(set_variable_name(&name_root, len) == S_ERROR) return S_ERROR;
     token = scan();
     while(token == TCOMMA){
         print_space();
         print_symbol_keyword(token);
         print_space();
         token = scan();
-        if(parse_variable_name() == S_ERROR) return S_ERROR;
+        if((len = parse_variable_name()) == S_ERROR) return S_ERROR;
+        if(set_variable_name(&name_root, len) == S_ERROR) return S_ERROR;
         token = scan();
     }
+    *p = name_root;
     return 0;
 }
 
+//return name length
 int parse_variable_name(){
     if(token != TNAME) return error("ERROR: invarid variable name declare");
     print_name_string(string_attr);
-    return 0;
+    id_add_variable(string_attr);
+    return strlen(string_attr);
 }
 
-int parse_type(){
+int parse_type(struct ARRAYINFO *ainfo){
+    int type;
     if(token == TARRAY) {
         print_space();
         print_symbol_keyword(token);
-
+        type = TARRAY;
         token = scan();
-        if(parse_array_type() == S_ERROR) return S_ERROR;
+        if(parse_array_type(ainfo) == S_ERROR) return S_ERROR;
     }else if(token == TINTEGER || token == TBOOLEAN || token == TCHAR) {
+        type = token;
         print_space();
         print_symbol_keyword(token);
     }else return error("ERROR: invarid type declare(expect integer, boolean, char or array)");
-    return 0;
+    return type;
 }
 
 int parse_standard_type(){
@@ -497,10 +562,11 @@ int parse_standard_type(){
     print_space();
     print_symbol_keyword(token);
 
-    return 0;
+    return token;
 }
 
-int parse_array_type(){
+int parse_array_type(struct ARRAYINFO *ainfo){
+    int type;
     if(token != TLSQPAREN) return error("ERROR: expect \"[\" next to \"array\"");
     print_space();
     print_symbol_keyword(token);
@@ -509,6 +575,8 @@ int parse_array_type(){
     if(token != TNUMBER) return error("ERROR: invarid number input(array declare)");
     print_space();
     print_name_string(string_attr);
+    ainfo->size = atoi(string_attr);
+    if(ainfo->size < 1) error("ERROR: array size is required at least 1");
 
     token = scan();
     if(token != TRSQPAREN) return error("ERROR: expect \"]\" next to number");
@@ -521,13 +589,16 @@ int parse_array_type(){
     print_symbol_keyword(token);
 
     token = scan();
-    if(parse_standard_type() == S_ERROR)return S_ERROR;
+    if((type = parse_standard_type()) == S_ERROR)return S_ERROR;
+    ainfo->etype = type;
     return 0;
 }
 
 //#endregion
 
 //#region sub program
+//引数かどうかの管理の追加
+
 int parse_sub_program(){
     if(token != TNAME) return error("ERROR: expect procedure name");
     print_space();
@@ -570,25 +641,39 @@ int parse_sub_program(){
 }
 
 int parse_formal_parameters(){
-    if(parse_variable_names() == S_ERROR) return S_ERROR;
+    struct VNAME *p = NULL;
+    int type;
+    if(parse_variable_names(&p) == S_ERROR) return S_ERROR;
     if(token != TCOLON) return error("ERROR: expect \":\" next to variable names");
     print_space();
     print_symbol_keyword(token);
 
     token = scan();
-    if(parse_type() == S_ERROR) return S_ERROR;
+    struct ARRAYINFO ainfo;
+    if((type = parse_type(&ainfo)) == S_ERROR) return S_ERROR;
+
+    if(type == TARRAY) add_variable_info_array(p,type,&ainfo);
+    else add_variable_info(p,type);
+
+    release_variable_name(&p);
+
     token = scan();
     while(token == TSEMI){
         print_symbol_keyword(token);
         print_space();
         token = scan();
-        if(parse_variable_names() == S_ERROR) return S_ERROR;
+        if(parse_variable_names(&p) == S_ERROR) return S_ERROR;
         if(token != TCOLON) return error("ERROR: expect \":\" next to variable names");
         print_space();
         print_symbol_keyword(token);
 
         token = scan();
-        if(parse_type() == S_ERROR) return S_ERROR;
+        if((type = parse_type(&ainfo)) == S_ERROR) return S_ERROR;
+
+        if(type == TARRAY) add_variable_info_array(p,type,&ainfo);
+        else add_variable_info(p,type);
+
+        release_variable_name(&p);
         token = scan();
     }
     if(token != TRPAREN) return error("ERROR: expect \")\" next to variable names");
@@ -599,6 +684,7 @@ int parse_formal_parameters(){
 }
 
 //#endregion
+
 
 int get_demand_type(int token){
     switch(token){

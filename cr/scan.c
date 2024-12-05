@@ -10,7 +10,8 @@ int scan(){
     int code = 0;
 
     //When code is 0, skip this letter
-    for(cbuf = read_char();code == 0;cbuf = read_char()){
+    while(code == 0){
+        cbuf = read_char();
         if(isspace(cbuf)){
             //include '\n'
             code = 0;
@@ -51,9 +52,11 @@ int scan(){
             }
         }
     }
+    /*
     if(cbuf == '\n'){
         // not put back buffer to stream
     }else ungetc(cbuf,fp);
+    */
     return code;
 }
 

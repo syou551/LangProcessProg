@@ -191,7 +191,6 @@ int parse_call_statement(){
         if(strcmp(get_processname(),string_attr)==0) return error("ERROR: can't call procedure recursively");
     }
     id_add_reflinenum(string_attr,get_linenum());
-
     token = scan();
     if(token == TLPAREN){
         print_space();

@@ -103,5 +103,6 @@ extern int num_attr;
 extern char string_attr[MAXSTRSIZE];
 extern FILE *fp;
 extern int linenum;
+extern int isnewline;
 
 #endif

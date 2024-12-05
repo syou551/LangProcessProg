@@ -2,7 +2,7 @@
 
 static char rbuf;
 FILE *fp;
-int linenum;
+int linenum, isnewline;
 
 //fp error handle is not executed
 /* File 'fileHandle.c'
@@ -16,6 +16,7 @@ Creating 'fileHandle.c.gcov' */
 int init_scan(char *filename){
     fp = fopen(filename, "r");
     linenum = 1 ;
+    isnewline = 0;
     if(fp <= 0) return -1;
     else return 0;
 }
@@ -29,13 +30,16 @@ void end_scan(){
 //When EOF, return EOF;
 //other error, return '\0'
 char read_char(){
+    //if new line, add linenum
+    if(isnewline) linenum++;
+    isnewline = 0;
     if(!(rbuf = fgetc(fp))){
         if(feof(fp)) return EOF;
         else return '\0';
     }else{
         if(rbuf == '\n' || rbuf == '\r') {
             char _rbuf = rbuf; 
-            linenum++;
+            isnewline = 1;
             if(!(rbuf = fgetc(fp))){
                 if(feof(fp)) return EOF;
                 else return '\0';

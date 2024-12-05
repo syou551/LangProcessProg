@@ -435,6 +435,7 @@ void print_idtab()
 { /* Output the registered data */
   struct ID *p;
   // print header
+  if(globalidroot == NULL) return;
   globalidroot = sort_idtab(globalidroot);
   check_column_size(globalidroot);
   printf("Name");

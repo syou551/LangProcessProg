@@ -58,7 +58,6 @@ int main(int nc, char *np[]) {
   parse_program();
 
   //id table output
-  printf("\n");
   print_idtab();
 
   end_scan();

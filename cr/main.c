@@ -1,5 +1,6 @@
 #include "scan.h"
 #include "parse.h"
+#include "idlist.h"
 
 // #region global var
 /* keyword list */
@@ -52,14 +53,24 @@ int main(int nc, char *np[]) {
     error("Cannot open input file.");
     return 0;
   }
+  init_idtab();
   /* 作成する部分：構文解析を行う */
   parse_program();
+
+  //id table output
+  printf("\n");
+  print_idtab();
 
   end_scan();
   return 0;
 }
 
-int error(char *mes) {
-  fprintf(stderr, "\nLine: %4d %s.\n", get_linenum(), mes);
+int error(char *mes,...) {
+  va_list ap;
+  va_start(ap, mes);
+
+  fprintf(stderr, "\nLine: %4d ", get_linenum());
+  vfprintf(stderr,mes, ap);
+  fprintf(stderr,"\n");
   return S_ERROR;
 }

@@ -26,6 +26,7 @@ int parse_program(){
     if(token != TDOT) return error("ERRPR: expect \".\" end of program");
     print_symbol_keyword(token);
     print_linebreak();
+
     return 0;
 }
 
@@ -109,10 +110,13 @@ int parse_statement(){
 }
 
 int parse_if_statement(){
+    int type;
     print_symbol_keyword(token);
     print_space();
     token = scan();
-    if(parse_expression() == S_ERROR) return S_ERROR;
+    if((type = parse_expression()) == S_ERROR) return S_ERROR;
+    if(type != TBOOLEAN) return error("ERROR: expression in if statement must have boolean return value");
+    
     if(token != TTHEN) return error("ERROR: expect \"then\" next to expression");
     print_space();
     print_symbol_keyword(token);
@@ -142,10 +146,14 @@ int parse_if_statement(){
 int parse_while_statement(){
     //no less than 1 break statement, so count number of appearing it
     exist_iteration++;
+
+    int type;
     print_symbol_keyword(token);
     print_space();
     token = scan();
-    if(parse_expression() == S_ERROR) return S_ERROR;
+    if((type = parse_expression()) == S_ERROR) return S_ERROR;
+    if(type != TBOOLEAN) return error("ERROR: expression in while statement must have boolean return value");
+
     if(token != TDO) return error("ERROR: exprect \"do\" next to expression");
     print_space();
     print_symbol_keyword(token);
@@ -171,11 +179,18 @@ int parse_break_statement(){
 }
 
 int parse_call_statement(){
+    int type;
     print_symbol_keyword(token);
     token = scan();
     if(token != TNAME) return error("ERROR: expect procedure name");
     print_space();
     print_name_string(string_attr);
+    if((type = search_variable_type(string_attr)) == S_ERROR) return S_ERROR;
+    else if(type != TPROCEDURE) return error("ERROR: \"%s\" isn't procedure", string_attr);
+    else if(get_mode() == LOCAL){
+        if(strcmp(get_processname(),string_attr)==0) return error("ERROR: can't call procedure recursively");
+    }
+    id_add_reflinenum(string_attr,get_linenum());
 
     token = scan();
     if(token == TLPAREN){
@@ -201,6 +216,7 @@ int parse_return_statement(){
 }
 
 int parse_input_statement(){
+    int type;
     print_symbol_keyword(token);
     token = scan();
     if(token == TLPAREN){
@@ -209,7 +225,8 @@ int parse_input_statement(){
         print_space();
 
         token = scan();
-        if(parse_variable() == S_ERROR) return S_ERROR;
+        if((type = parse_variable()) == S_ERROR) return S_ERROR;
+        if(type != TINTEGER && type != TCHAR) return error("ERROR: variable in input statement required integer or char type");
         while(token == TCOMMA){
             print_space();
             print_symbol_keyword(token);
@@ -248,15 +265,17 @@ int parse_output_statement(){
 }
 
 int parse_output_format(){
-    //If string length is more than 1, the token is string
+    //If string length is 0 or more than 1, the token is string
     if(token == TSTRING && strlen(string_attr) > 3 && strcmp(string_attr,"''''") != 0){
         //print
         print_space();
         print_name_string(string_attr);
         token = scan();
     }else{
+        int type;
         print_space();
-        if(parse_expression() == S_ERROR) return S_ERROR;
+        if((type = parse_expression()) == S_ERROR) return S_ERROR;
+        if(type != TINTEGER && type != TCHAR && type != TBOOLEAN) return error("ERROR: expression of output format required standard type");
         if(token == TCOLON){
             print_space();
             print_symbol_keyword(token);
@@ -281,30 +300,33 @@ int parse_assign_statement(){
 
     token = scan();
     if((exptype = parse_expression())==S_ERROR)return S_ERROR;
-    if(type != exptype) return error("ERROR: variable type don't match expression type");
+    if(type != exptype) return error("ERROR: variable \"%s\" type don't match expression type", string_attr);
     return 0;
 }
+
 //add search variable type func 
 int parse_variable(){
-    int type;
+    int type, etype, tmp;
     print_name_string(string_attr);
-    switch(get_mode()){
-        case 1: type = search_variable_type_local(string_attr);break;
-        case 0: type = search_variable_type(string_attr);break;
-    }
-    if(type == S_ERROR) return error("ERROR: Not found variable type");
+    if((type = search_variable_type(string_attr)) == S_ERROR) return S_ERROR;
+    else if(type == TARRAY) etype = search_array_element_type(string_attr);
+
+    id_add_reflinenum(string_attr,get_linenum());
+
     token = scan();
     if(token == TLSQPAREN){
+        if(type != TARRAY) return error("ERROR: this variable isn't array");
         print_space();
         print_symbol_keyword(token);
 
         print_space();
-        if(type != TARRAY)return error("ERROR: this variable isn't array type");
         token = scan();
-        if(parse_expression() == S_ERROR)return S_ERROR;
+        if((tmp = parse_expression()) == S_ERROR)return S_ERROR;
+        if(tmp != TINTEGER) return error("ERROR: expression next to array type isn't integer");
         if(token != TRSQPAREN)return error("ERROR: expect \"]\" next to expression");
         print_space();
         print_symbol_keyword(token);
+        type = etype;
         token = scan();
     }
     return type;
@@ -323,8 +345,9 @@ int parse_expressions(){
 }
 
 int parse_expression(){
-    int type, tmp;
+    int type, rtype, tmp;
     if((type = parse_simple_expression()) == S_ERROR) return S_ERROR;
+    rtype = type;
     while(token == TEQUAL || token == TNOTEQ || token == TLE || token == TLEEQ || token == TGR || token == TGREQ){
         print_space();
         print_symbol_keyword(token);
@@ -332,8 +355,9 @@ int parse_expression(){
         token = scan();
         if((tmp = parse_simple_expression()) == S_ERROR) return S_ERROR;
         if(tmp != type) return error("ERROR: expression type don't match");
+        rtype = TBOOLEAN;
     }
-    return type;
+    return rtype;
 }
 //add return st.
 //from here
@@ -458,12 +482,22 @@ void add_variable_info(struct VNAME *root, int type){
     }
 }
 
+void add_param_info(struct VNAME *root, int type){
+    struct VNAME *p = NULL;
+    p = root;
+    while(p != NULL){
+        id_add_info(p->name,type,get_linenum());
+        if(get_mode() == LOCAL) id_add_param_info(type);
+        p = p->np;
+    }
+}
+
 void add_variable_info_array(struct VNAME *root, int type, struct ARRAYINFO *ainfo){
     struct VNAME *p = NULL;
     p = root;
     while(p != NULL){
         id_add_info(p->name,type,get_linenum());
-        id_add_alement_info(p->name,ainfo->etype,ainfo->size);
+        id_add_element_info(p->name,ainfo->etype,ainfo->size);
         p = p->np;
     }
 }
@@ -475,6 +509,7 @@ int parse_var_dec(){
     if(token != TCOLON) return error("ERROR: expect \":\" next to variable names");
     print_space();
     print_symbol_keyword(token);
+
     token = scan();
     //if array type, get array size and etype
     struct ARRAYINFO ainfo;
@@ -482,6 +517,8 @@ int parse_var_dec(){
 
     if(type == TARRAY)add_variable_info_array(p,type,&ainfo);
     else add_variable_info(p,type);
+
+
 
     token = scan();
     if(token != TSEMI) return error("ERROR: expect \";\" next to type");
@@ -537,7 +574,7 @@ int parse_variable_names(struct VNAME **p){
 int parse_variable_name(){
     if(token != TNAME) return error("ERROR: invarid variable name declare");
     print_name_string(string_attr);
-    id_add_variable(string_attr);
+    if(id_add_variable(string_attr) == S_ERROR) return S_ERROR;
     return strlen(string_attr);
 }
 
@@ -597,13 +634,14 @@ int parse_array_type(struct ARRAYINFO *ainfo){
 //#endregion
 
 //#region sub program
-//引数かどうかの管理の追加
-
 int parse_sub_program(){
     if(token != TNAME) return error("ERROR: expect procedure name");
     print_space();
     print_name_string(string_attr);
+    if(id_add_variable(string_attr) == S_ERROR) return S_ERROR;
+    id_add_info(string_attr,TPROCEDURE,get_linenum());
 
+    if(set_mode_local(string_attr) == S_ERROR) return S_ERROR;
     token = scan();
     if(token == TLPAREN) {
         print_space();
@@ -637,6 +675,8 @@ int parse_sub_program(){
     if(token != TSEMI) return error("ERROR: expect \";\" next to compound statement");
     print_symbol_keyword(token);
     print_linebreak();
+
+    set_mode_global();
     return 0;
 }
 
@@ -652,9 +692,10 @@ int parse_formal_parameters(){
     struct ARRAYINFO ainfo;
     if((type = parse_type(&ainfo)) == S_ERROR) return S_ERROR;
 
-    if(type == TARRAY) add_variable_info_array(p,type,&ainfo);
-    else add_variable_info(p,type);
+    //require only standard type
+    if(type == TARRAY) return error("ERROR: formal parameters must be standard type");
 
+    add_param_info(p,type);
     release_variable_name(&p);
 
     token = scan();
@@ -669,10 +710,9 @@ int parse_formal_parameters(){
 
         token = scan();
         if((type = parse_type(&ainfo)) == S_ERROR) return S_ERROR;
-
-        if(type == TARRAY) add_variable_info_array(p,type,&ainfo);
-        else add_variable_info(p,type);
-
+        if(type == TARRAY) return error("ERROR: formal parameters must be standard type");
+        
+        add_variable_info(p,type);
         release_variable_name(&p);
         token = scan();
     }
@@ -696,8 +736,10 @@ int get_demand_type(int token){
         case TMINUS:
         case TSTAR:
         case TDIV: 
-        case TNUMBER: TINTEGER; break;
+        case TNUMBER: return TINTEGER; break;
         case TSTRING: return TCHAR; break;
         default : return S_ERROR; break;
     }
+
+    return 0;
 }

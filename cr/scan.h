@@ -81,23 +81,13 @@ extern struct SYM {
 	int symtoken;
 } sym[SYMBOLSIZE];
 
-extern int error(char *mes);
+extern int error(char *mes,...);
 
 extern int init_scan(char *filename);
 extern void init_idtab();
 extern int scan(void);
 extern int get_linenum(void);
 extern void end_scan(void);
-extern void release_idtab(void);
-extern void id_add_variable(char *np);
-extern void id_add_info(char *np, int typetoken, int deflinenum);
-void id_add_info_local(char *np, char *processnp, int typetoken, int deflinenum);
-extern void id_add_element_info(char *np, int typetoken, int arraysize);
-extern void id_add_element_info_local(char *np, int typetoken, int arraysize);
-extern void id_add_param_info(char *np, int typetoken);
-extern void id_add_reflinenum(char *np, int linenum);
-extern void id_add_reflinenum_local(char *np, int linenum);
-extern void print_idtab(void);
 
 // add function declear
 extern void init_counter(int *counter_array);

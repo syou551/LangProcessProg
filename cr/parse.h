@@ -1,6 +1,8 @@
 #ifndef PARSE_H
 #define PARSE_H
 
+#define DEBUG 
+
 #include "scan.h"
 
 //remember variable names declared same state
@@ -13,6 +15,8 @@ struct ARRAYINFO{
     int size;
     int etype;
 };
+
+extern char *tokenstr[NUMOFTOKEN + 1];
 
 //parser function
 extern int parse_program();
@@ -50,6 +54,8 @@ extern int parse_output_format();
 extern int get_demand_type(int token);
 
 //prety printer
+
+#ifdef DEBUG
 extern void print_symbol_keyword(int token);
 extern void print_name_string(char* name);
 extern void print_linebreak();
@@ -57,6 +63,16 @@ extern void print_space();
 extern void print_indent();
 extern void set_indent();
 extern void remove_indent();
+
+#else
+#define print_symbol_keyword(token) token = token
+#define print_name_string(string_attr) token = token
+#define print_linebreak() token = token
+#define print_space() token = token
+#define print_indent() token = token
+#define set_indent() token = token
+#define remove_indent() token = token
+#endif
 
 extern int indent;
 

@@ -1,7 +1,7 @@
 # MYLIBDIR=
 # MYLIB=
 # CFLAGS=-I${MYLIBDIR} -L${MYLIBDIR}
-OBJS=fileHandle.o main.o scan.o parser.o prettyPrint.o
+OBJS=fileHandle.o main.o scan.o parser.o idList.o prettyPrint.o
 
 all: cr
 
@@ -23,4 +23,4 @@ retest:
 	make test
 
 clean:
-	${RM} *.o pp *~
+	${RM} *.o cr *~

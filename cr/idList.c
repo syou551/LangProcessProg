@@ -41,7 +41,7 @@ struct ID *search_idtab_local(char *np)
   return (NULL);
 }
 
-int id_add_variable(char *np)
+int id_add_variable(char *np, int deflinenum)
 {
   struct ID *p;
   struct TYPE *t;
@@ -58,7 +58,7 @@ int id_add_variable(char *np)
   p->ispara = get_mode();
 
   p->typ = t;
-  p->deflinenum = S_ERROR;
+  p->deflinenum = deflinenum;
   p->nextp = NULL;
   p->reflinep = NULL;
   // check conflict and add to table
@@ -84,7 +84,7 @@ int id_add_variable(char *np)
   return 0;
 }
 
-void id_add_info(char *np, int typetoken, int deflinenum)
+void id_add_info(char *np, int typetoken)
 {
   struct ID *p = NULL;
   switch (mode)
@@ -93,7 +93,7 @@ void id_add_info(char *np, int typetoken, int deflinenum)
     p = search_idtab(np);
     break;
   case 1:
-    id_add_info_local(np, processname, typetoken, deflinenum);
+    id_add_info_local(np, processname, typetoken);
     return;
   }
   if (p == NULL)
@@ -105,14 +105,13 @@ void id_add_info(char *np, int typetoken, int deflinenum)
   struct LINE *l = p->reflinep;
   char *cp;
 
-  p->deflinenum = deflinenum;
   t->ttype = typetoken;
   t->arraysize = 0;
   t->etp = NULL;
   t->paratp = NULL;
 }
 // call from id_add_info
-void id_add_info_local(char *np, char *processnp, int typetoken, int deflinenum)
+void id_add_info_local(char *np, char *processnp, int typetoken)
 {
   struct ID *p = NULL;
   if ((p = search_idtab_local(np)) == NULL)
@@ -130,7 +129,6 @@ void id_add_info_local(char *np, char *processnp, int typetoken, int deflinenum)
   }
   strcpy(procp, processnp);
   p->processname = procp;
-  p->deflinenum = deflinenum;
   p->ispara = 1;
   t->ttype = typetoken;
   t->arraysize = 0;
@@ -159,8 +157,9 @@ void id_add_element_info(char *np, int typetoken, int arraysize)
       return;
     }
     p->typ->etp = t;
+    p->typ->arraysize = arraysize;
     t->ttype = typetoken;
-    t->arraysize = arraysize;
+    t->arraysize = 0;
     t->etp = NULL;
     t->paratp = NULL;
   }
@@ -469,7 +468,7 @@ void print_idtab()
 
     if (p->typ->ttype == TARRAY)
     {
-      printf(" array[%d] of %s|", p->typ->arraysize, tokenstr[p->typ->etp->ttype]);
+      printf(" array[%d] of %s", p->typ->arraysize, tokenstr[p->typ->etp->ttype]);
       for(int i = 0;i < (column_size[1]/4 + 1) - ((11 + strlen(tokenstr[p->typ->etp->ttype]))/4);i++){
         printf("\t");
       }

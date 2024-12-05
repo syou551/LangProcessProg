@@ -39,9 +39,9 @@ extern char *get_processname();
 
 extern void release_idtab(void);
 void clear_idtab_local();
-extern int id_add_variable(char *np);
-extern void id_add_info(char *np, int typetoken, int deflinenum);
-void id_add_info_local(char *np, char *processnp, int typetoken, int deflinenum);
+extern int id_add_variable(char *np, int deflinenum);
+extern void id_add_info(char *np, int typetoken);
+void id_add_info_local(char *np, char *processnp, int typetoken);
 extern void id_add_element_info(char *np, int typetoken, int arraysize);
 void id_add_element_info_local(char *np, int typetoken, int arraysize);
 extern void id_add_param_info(int typetoken);

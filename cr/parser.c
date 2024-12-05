@@ -476,7 +476,7 @@ void add_variable_info(struct VNAME *root, int type){
     struct VNAME *p = NULL;
     p = root;
     while(p != NULL){
-        id_add_info(p->name,type,get_linenum());
+        id_add_info(p->name,type);
         p = p->np;
     }
 }
@@ -485,7 +485,7 @@ void add_param_info(struct VNAME *root, int type){
     struct VNAME *p = NULL;
     p = root;
     while(p != NULL){
-        id_add_info(p->name,type,get_linenum());
+        id_add_info(p->name,type);
         if(get_mode() == LOCAL) id_add_param_info(type);
         p = p->np;
     }
@@ -495,7 +495,7 @@ void add_variable_info_array(struct VNAME *root, int type, struct ARRAYINFO *ain
     struct VNAME *p = NULL;
     p = root;
     while(p != NULL){
-        id_add_info(p->name,type,get_linenum());
+        id_add_info(p->name,type);
         id_add_element_info(p->name,ainfo->etype,ainfo->size);
         p = p->np;
     }
@@ -573,7 +573,7 @@ int parse_variable_names(struct VNAME **p){
 int parse_variable_name(){
     if(token != TNAME) return error("ERROR: invarid variable name declare");
     print_name_string(string_attr);
-    if(id_add_variable(string_attr) == S_ERROR) return S_ERROR;
+    if(id_add_variable(string_attr, get_linenum()) == S_ERROR) return S_ERROR;
     return strlen(string_attr);
 }
 
@@ -637,8 +637,8 @@ int parse_sub_program(){
     if(token != TNAME) return error("ERROR: expect procedure name");
     print_space();
     print_name_string(string_attr);
-    if(id_add_variable(string_attr) == S_ERROR) return S_ERROR;
-    id_add_info(string_attr,TPROCEDURE,get_linenum());
+    if(id_add_variable(string_attr, get_linenum()) == S_ERROR) return S_ERROR;
+    id_add_info(string_attr,TPROCEDURE);
 
     if(set_mode_local(string_attr) == S_ERROR) return S_ERROR;
     token = scan();

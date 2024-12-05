@@ -7,6 +7,8 @@ static int mode = GLOBAL;
 static char *processname = NULL;
 static int column_size[COLUMNNUM] = {0,11+11,0,0};
 
+struct ID *globalidroot, *localidroot;
+
 void init_idtab()
 { /* Initialise the table */
   globalidroot = NULL;

@@ -16,7 +16,7 @@ struct LINE
   struct LINE *nextlinep;
 };
 
-struct ID
+extern struct ID
 {
   char *name;
   char *processname;

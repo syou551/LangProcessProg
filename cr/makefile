@@ -11,7 +11,7 @@ cr: ${OBJS}
 
 test: cr
 	gcc -coverage -c *.c
-	gcc -coverage -o pp *.o
+	gcc -coverage -o cr *.o
 	bash test.sh
 	gcov -b *.gcda
 

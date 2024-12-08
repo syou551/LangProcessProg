@@ -434,9 +434,10 @@ void print_idtab()
 { /* Output the registered data */
   struct ID *p;
   // print header
-  if(globalidroot == NULL) return;
-  globalidroot = sort_idtab(globalidroot);
-  check_column_size(globalidroot);
+  if(globalidroot != NULL) {
+    globalidroot = sort_idtab(globalidroot);
+    check_column_size(globalidroot);
+  }
   printf("Name");
   for(int i = 0;i <= (column_size[0] / 4);i++){
     printf("\t");
@@ -446,7 +447,8 @@ void print_idtab()
     printf("\t");
   }
   printf("| Define| References\n");
-
+  fflush(stdout);
+  
 
   for (p = globalidroot; p != NULL; p = p->nextp)
   {

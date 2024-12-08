@@ -1,4 +1,5 @@
 #include "scan.h"
+#include "idlist.h"
 
 static char rbuf;
 FILE *fp;
@@ -17,6 +18,7 @@ int init_scan(char *filename){
     fp = fopen(filename, "r");
     linenum = 1 ;
     isnewline = 0;
+    init_idtab();
     if(fp <= 0) return -1;
     else return 0;
 }
@@ -24,6 +26,7 @@ int init_scan(char *filename){
 // close file stream
 void end_scan(){
     fclose(fp);
+    release_idtab();
 }
 
 //read 1 letter and if linebreak, count increment and return '\n'

@@ -9,9 +9,9 @@ cr: ${OBJS}
 	${CC} -o $@ $^
 #	${CC} ${CFLAGS} -o $@ $^ ${MYLIB}
 
-test: cr
-	gcc -coverage -c *.c
-	gcc -coverage -o cr *.o
+test: ${OBJS}
+	gcc -coverage -c fileHandle.c main.c scan.c parser.c idList.c
+	gcc -coverage -o cr $^
 	bash test.sh
 	gcov -b *.gcda
 

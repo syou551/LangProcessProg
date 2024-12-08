@@ -53,12 +53,11 @@ int main(int nc, char *np[]) {
     error("Cannot open input file.");
     return 0;
   }
-  init_idtab();
   /* 作成する部分：構文解析を行う */
-  parse_program();
-
-  //id table output
-  print_idtab();
+  if(parse_program() != S_ERROR){
+    //id table output
+    print_idtab();
+  }
 
   end_scan();
   return 0;
@@ -71,5 +70,7 @@ int error(char *mes,...) {
   fprintf(stderr, "\nLine: %4d ", get_linenum());
   vfprintf(stderr,mes, ap);
   fprintf(stderr,"\n");
+
+  va_end(ap);
   return S_ERROR;
 }

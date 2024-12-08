@@ -22,10 +22,7 @@ struct ID *search_idtab(char *np)
   for (p = globalidroot; p != NULL; p = p->nextp)
   {
     if (strcmp(np, p->name) == 0)
-    {
-      if (!(p->ispara))
-        return p;
-    }
+      if (!(p->ispara)) return p;
   }
   return NULL;
 }
@@ -35,8 +32,7 @@ struct ID *search_idtab_local(char *np)
   struct ID *p;
   for (p = localidroot; p != NULL; p = p->nextp)
   {
-    if (strcmp(np, p->name) == 0)
-      return (p);
+    if (strcmp(np, p->name) == 0) return (p);
   }
   return (NULL);
 }
@@ -62,17 +58,12 @@ int id_add_variable(char *np, int deflinenum)
   p->nextp = NULL;
   p->reflinep = NULL;
   // check conflict and add to table
-  if (get_mode() == GLOBAL)
-  {
-    if (search_idtab(np) != NULL)
-      return error("ERROR: this name \"%s\" variable has been declared", np);
+  if (get_mode() == GLOBAL){
+    if (search_idtab(np) != NULL) return error("ERROR: this name \"%s\" variable has been declared", np);
     p->nextp = globalidroot;
     globalidroot = p;
-  }
-  else if (get_mode() == LOCAL)
-  {
-    if (search_idtab_local(np) != NULL)
-      return error("ERROR: this name \"%s\" variable has been declared", np);
+  }else if (get_mode() == LOCAL){
+    if (search_idtab_local(np) != NULL) return error("ERROR: this name \"%s\" variable has been declared", np);
     p->nextp = localidroot;
     localidroot = p;
   }
@@ -84,23 +75,18 @@ int id_add_variable(char *np, int deflinenum)
   return 0;
 }
 
-void id_add_info(char *np, int typetoken)
+int id_add_info(char *np, int typetoken)
 {
   struct ID *p = NULL;
   switch (mode)
   {
-  case 0:
-    p = search_idtab(np);
-    break;
-  case 1:
-    id_add_info_local(np, processname, typetoken);
-    return;
+    case 0:
+      p = search_idtab(np);
+      break;
+    case 1:
+      return id_add_info_local(np, processname, typetoken);
   }
-  if (p == NULL)
-  {
-    error("ERROR: internal error(variable isn't added table)");
-    return;
-  }
+  if (p == NULL) return error("ERROR: internal error(variable isn't added table)");
   struct TYPE *t = p->typ;
   struct LINE *l = p->reflinep;
   char *cp;
@@ -109,24 +95,20 @@ void id_add_info(char *np, int typetoken)
   t->arraysize = 0;
   t->etp = NULL;
   t->paratp = NULL;
+
+  return 0;
 }
 // call from id_add_info
-void id_add_info_local(char *np, char *processnp, int typetoken)
+int id_add_info_local(char *np, char *processnp, int typetoken)
 {
   struct ID *p = NULL;
-  if ((p = search_idtab_local(np)) == NULL)
-  {
-    error("ERROR: internal error(variable isn't added table)");
-    return;
-  }
+  if ((p = search_idtab_local(np)) == NULL) return error("ERROR: internal error(variable isn't added table)");
+
   struct TYPE *t = p->typ;
   struct LINE *l = p->reflinep;
   char *procp;
-  if ((procp = (char *)malloc(strlen(processnp) + 1)) == NULL)
-  {
-    error("Cannot malloc for procp in id_add_info_local");
-    return;
-  }
+  if ((procp = (char *)malloc(strlen(processnp) + 1)) == NULL) return error("Cannot malloc for procp in id_add_info_local");
+
   strcpy(procp, processnp);
   p->processname = procp;
   p->ispara = 1;
@@ -134,82 +116,65 @@ void id_add_info_local(char *np, char *processnp, int typetoken)
   t->arraysize = 0;
   t->etp = NULL;
   t->paratp = NULL;
+
+  return 0;
 }
 
-void id_add_element_info(char *np, int typetoken, int arraysize)
+int id_add_element_info(char *np, int typetoken, int arraysize)
 {
   struct ID *p;
   struct TYPE *t;
   switch (mode)
   {
-  case 0:
-    p = search_idtab(np);
-    break;
-  case 1:
-    id_add_element_info_local(np, typetoken, arraysize);
-    return;
+    case 0:
+      p = search_idtab(np);
+      break;
+    case 1:
+      return id_add_element_info_local(np, typetoken, arraysize);
   }
   if (p != NULL)
   {
-    if ((t = (struct TYPE *)malloc(sizeof(struct TYPE))) == NULL)
-    {
-      error("Cannot malloc for t in id_add_element_info");
-      return;
-    }
+    if ((t = (struct TYPE *)malloc(sizeof(struct TYPE))) == NULL) return error("Cannot malloc for t in id_add_element_info");
+
     p->typ->etp = t;
     p->typ->arraysize = arraysize;
     t->ttype = typetoken;
     t->arraysize = 0;
     t->etp = NULL;
     t->paratp = NULL;
-  }
-  else
-  {
-    error("Cannnot find array id data!");
-    return;
-  }
+  }else return error("Cannnot find array id data!");
+
+  return 0;
 }
 // call from id_add_element_info
-void id_add_element_info_local(char *np, int typetoken, int arraysize)
+int id_add_element_info_local(char *np, int typetoken, int arraysize)
 {
   struct ID *p;
   struct TYPE *t;
   if ((p = search_idtab_local(np)) != NULL)
   {
-    if ((t = (struct TYPE *)malloc(sizeof(struct TYPE))) == NULL)
-    {
-      error("Cannot malloc for t in id_add_element_info");
-      return;
-    }
+    if ((t = (struct TYPE *)malloc(sizeof(struct TYPE))) == NULL) return error("Cannot malloc for t in id_add_element_info");
+
     p->typ->etp = t;
+    p->typ->arraysize = arraysize;
     t->ttype = typetoken;
-    t->arraysize = arraysize;
+    t->arraysize = 0;
     t->etp = NULL;
     t->paratp = NULL;
-  }
-  else
-  {
-    error("Cannnot find array id data!");
-    return;
-  }
+  }else return error("Cannnot find array id data!");
+
+  return 0;
 }
 
-void id_add_param_info(int typetoken)
+int id_add_param_info(int typetoken)
 {
   struct ID *p;
   struct TYPE *t, *end;
   if ((p = search_idtab(processname)) != NULL)
   {
-    if ((t = (struct TYPE *)malloc(sizeof(struct TYPE))) == NULL)
-    {
-      error("Cannot malloc for t in id_add_param_info");
-      return;
-    }
-    if (p->typ == NULL)
-    {
-      error("Cannot set type of param.");
-      return;
-    }
+    if ((t = (struct TYPE *)malloc(sizeof(struct TYPE))) == NULL) return error("Cannot malloc for t in id_add_param_info");
+    if (p->typ == NULL) return error("Cannot set type of param.");
+
     end = p->typ->paratp;
     if (end != NULL)
     {
@@ -223,39 +188,30 @@ void id_add_param_info(int typetoken)
     t->arraysize = 0;
     t->paratp = NULL;
     t->etp = NULL;
-    if (end == NULL)
-      p->typ->paratp = t;
-    else
-      end->paratp = t;
-  }
-  else
-  {
-    error("Cannnot find proc id data!");
-    return;
-  }
+    if (end == NULL) p->typ->paratp = t;
+    else end->paratp = t;
+  }else return error("Cannnot find proc id data!");
+
+  return 0;
 }
 
 // while compound state process.
-void id_add_reflinenum(char *np, int linenum)
+int id_add_reflinenum(char *np, int linenum)
 {
   switch (mode)
   {
-  case LOCAL:
-    id_add_reflinenum_local(np, linenum);
-    return;
-  case GLOBAL:
-    break;
+    case LOCAL:
+      return id_add_reflinenum_local(np, linenum);
+    case GLOBAL:
+      break;
   }
   struct ID *p = NULL;
   struct LINE *l = NULL, *latest = NULL;
 
   if ((p = search_idtab(np)) != NULL)
   {
-    if ((l = (struct LINE *)malloc(sizeof(struct LINE))) == NULL)
-    {
-      error("Cannot malloc for l in id_add_reflinenum");
-      return;
-    }
+    if ((l = (struct LINE *)malloc(sizeof(struct LINE))) == NULL) return error("Cannot malloc for l in id_add_reflinenum");
+
     latest = p->reflinep;
 
     if (latest != NULL)
@@ -267,36 +223,24 @@ void id_add_reflinenum(char *np, int linenum)
     }
     l->linenum = linenum;
     l->nextlinep = NULL;
-    if (latest == NULL)
-      p->reflinep = l;
-    else
-      latest->nextlinep = l;
-  }
-  else
-  {
-    error("Cannnot find variable id data!");
-    return;
-  }
+    if (latest == NULL) p->reflinep = l;
+    else latest->nextlinep = l;
+  }else return error("Cannnot find variable id data!");
+
+  return 0;
 }
 
-void id_add_reflinenum_local(char *np, int linenum)
+int id_add_reflinenum_local(char *np, int linenum)
 {
   struct ID *p;
   struct LINE *l, *latest;
   if ((p = search_idtab_local(np)) == NULL)
   {
-    if ((p = search_idtab(np)) == NULL)
-    {
-      error("Cannnot find variable id data!");
-      return;
-    }
+    if ((p = search_idtab(np)) == NULL) return error("Cannnot find variable id data!");
   }
 
-  if ((l = (struct LINE *)malloc(sizeof(struct LINE))) == NULL)
-  {
-    error("Cannot malloc for l in id_add_reflinenum");
-    return;
-  }
+  if ((l = (struct LINE *)malloc(sizeof(struct LINE))) == NULL)return error("Cannot malloc for l in id_add_reflinenum");
+
   latest = p->reflinep;
   if (latest != NULL)
   {
@@ -309,6 +253,8 @@ void id_add_reflinenum_local(char *np, int linenum)
   l->nextlinep = NULL;
   if (latest == NULL) p->reflinep = l;
   else latest->nextlinep = l;
+
+  return 0;
 }
 
 int search_variable_type(char *np)
@@ -318,7 +264,6 @@ int search_variable_type(char *np)
   {
   case LOCAL:
     return search_variable_type_local(np);
-    break;
   case GLOBAL:
     break;
   }
@@ -354,7 +299,6 @@ int search_array_element_type(char *np)
   {
   case LOCAL:
     return search_array_element_type_local(np);
-    break;
   case GLOBAL:
     break;
   }
@@ -391,10 +335,7 @@ int set_mode_local(char *np)
 {
   processname = NULL;
 
-  if ((processname = (char *)malloc(strlen(np) + 1)) == NULL)
-  {
-    return error("ERROR: failure get space of processname");
-  }
+  if ((processname = (char *)malloc(strlen(np) + 1)) == NULL) return error("ERROR: failure get space of processname");
 
   strcpy(processname, np);
   mode = LOCAL;
@@ -404,8 +345,7 @@ int set_mode_local(char *np)
 void set_mode_global()
 {
   mode = GLOBAL;
-  if (processname != NULL)
-    free(processname);
+  if (processname != NULL) free(processname);
   clear_idtab_local();
 }
 
@@ -422,13 +362,16 @@ char *get_processname()
 void check_column_size(struct ID *p){
   struct ID *idp;
   for(idp = p; idp != NULL; idp = idp->nextp){
-    if(idp->ispara) column_size[0] = (column_size[0] < (strlen(idp->name) + 1 + strlen(idp->processname))) 
-      ? strlen(idp->name) + 1 + strlen(idp->processname) : column_size[0];
-    else column_size[0] = (column_size[0] < strlen(idp->name)) 
-      ? strlen(idp->name) : column_size[0];
+    if(idp->ispara) column_size[0] =
+     (column_size[0] < (strlen(idp->name) + 1 + strlen(idp->processname))) 
+      ? strlen(idp->name) + 1 + strlen(idp->processname) 
+      : column_size[0];
+    else column_size[0] =
+     (column_size[0] < strlen(idp->name)) 
+      ? strlen(idp->name) 
+      : column_size[0];
   }
 }
-
 
 void print_idtab()
 { /* Output the registered data */
@@ -467,7 +410,7 @@ void print_idtab()
       }
       printf("|");
     }
-
+    
     if (p->typ->ttype == TARRAY)
     {
       printf(" array[%d] of %s", p->typ->arraysize, tokenstr[p->typ->etp->ttype]);
@@ -478,8 +421,7 @@ void print_idtab()
     }
     else if (p->typ->ttype == TPROCEDURE)
     {
-      if (p->typ->paratp == NULL)
-        printf(" procedure\t\t\t\t|");
+      if (p->typ->paratp == NULL) printf(" procedure\t\t\t\t|");
       else
       {
         struct TYPE *tp;
@@ -524,6 +466,8 @@ void print_idtab()
     printf("\n");
   }
 }
+
+
 
 struct ID *sort_idtab(struct ID *p)
 {
@@ -576,6 +520,7 @@ struct ID *sort_idtab(struct ID *p)
   return root;
 }
 
+
 void release_line(struct LINE *l)
 {
   struct LINE *nlp;
@@ -587,11 +532,11 @@ void release_line(struct LINE *l)
   }
 }
 
+
 void release_type(struct TYPE *t)
 {
   struct TYPE *tmp;
-  if (t == NULL)
-    return;
+  if (t == NULL) return;
 
   if (t->etp != NULL)
   {
@@ -617,8 +562,7 @@ void release_type(struct TYPE *t)
 /* move local idtab to global idtab */
 void clear_idtab_local()
 {
-  if (localidroot == NULL)
-    return;
+  if (localidroot == NULL) return;
   struct ID *p;
   p = localidroot;
   while(p->nextp != NULL){

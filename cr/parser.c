@@ -55,7 +55,6 @@ int parse_block(){
 }
 
 //#region statement
-//参照行の追加処理と型チェック
 int parse_compound_statement(){
     if(token != TBEGIN) return error("ERROR: expect \"begin\" next to \";\"");
     print_symbol_keyword(token);
@@ -172,9 +171,8 @@ int parse_break_statement(){
     print_symbol_keyword(token);
     //print
     token = scan();
-    if(exist_iteration < 1){
+    if(exist_iteration < 1)
         return error("ERROR: break statement must be included  in at least one iteration statement");
-    }
     return 0;
 }
 
@@ -190,7 +188,8 @@ int parse_call_statement(){
     else if(get_mode() == LOCAL){
         if(strcmp(get_processname(),string_attr)==0) return error("ERROR: can't call procedure recursively");
     }
-    id_add_reflinenum(string_attr,get_linenum());
+    
+    if(id_add_reflinenum(string_attr,get_linenum()) == S_ERROR) return S_ERROR;
     token = scan();
     if(token == TLPAREN){
         print_space();
@@ -310,7 +309,7 @@ int parse_variable(){
     if((type = search_variable_type(string_attr)) == S_ERROR) return S_ERROR;
     else if(type == TARRAY) etype = search_array_element_type(string_attr);
 
-    id_add_reflinenum(string_attr,get_linenum());
+    if(id_add_reflinenum(string_attr,get_linenum()) == S_ERROR) return S_ERROR;
 
     token = scan();
     if(token == TLSQPAREN){
@@ -372,6 +371,7 @@ int parse_simple_expression(){
     if(type == TINTEGER && termtype != type) {
         return error("ERROR: + or - is operator for integer");
     }
+
     type = termtype;
     while(token == TPLUS || token == TMINUS || token == TOR){
         if(get_demand_type(token) != type) return error("ERROR: operator is incorrect");
@@ -441,9 +441,8 @@ int parse_factor(){
         print_space();
         print_symbol_keyword(token);
         token = scan();
-    }else {
-        return error("ERROR: expect factor");
-    }
+    }else return error("ERROR: expect factor");
+
     return type;
 }
 //#endregion
@@ -516,8 +515,6 @@ int parse_var_dec(){
 
     if(type == TARRAY)add_variable_info_array(p,type,&ainfo);
     else add_variable_info(p,type);
-
-
 
     token = scan();
     if(token != TSEMI) return error("ERROR: expect \";\" next to type");
@@ -638,7 +635,7 @@ int parse_sub_program(){
     print_space();
     print_name_string(string_attr);
     if(id_add_variable(string_attr, get_linenum()) == S_ERROR) return S_ERROR;
-    id_add_info(string_attr,TPROCEDURE);
+    if(id_add_info(string_attr,TPROCEDURE) == S_ERROR) return S_ERROR;
 
     if(set_mode_local(string_attr) == S_ERROR) return S_ERROR;
     token = scan();
@@ -724,21 +721,19 @@ int parse_formal_parameters(){
 
 //#endregion
 
-
 int get_demand_type(int token){
+    int type = 0;
     switch(token){
         case TAND:
         case TOR: 
         case TTRUE:
-        case TFALSE: return TBOOLEAN; break;
+        case TFALSE: type = TBOOLEAN; break;
         case TPLUS:
         case TMINUS:
         case TSTAR:
         case TDIV: 
-        case TNUMBER: return TINTEGER; break;
-        case TSTRING: return TCHAR; break;
-        default : return S_ERROR; break;
+        case TNUMBER: type = TINTEGER; break;
+        case TSTRING: type = TCHAR; break;
     }
-
-    return 0;
+    return type;
 }

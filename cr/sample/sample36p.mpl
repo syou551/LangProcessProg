@@ -1,4 +1,4 @@
-program sample33p;{case of recursive procedure call}
+program sample33p;
 var a,x : integer;
 var c : char;
 begin

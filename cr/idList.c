@@ -1,7 +1,5 @@
 ﻿#include "parse.h"
 #include "idlist.h"
-#include <stdlib.h>
-
 
 static int mode = GLOBAL;
 static char *processname = NULL;
@@ -142,7 +140,8 @@ int id_add_element_info(char *np, int typetoken, int arraysize)
     t->arraysize = 0;
     t->etp = NULL;
     t->paratp = NULL;
-  }else return error("Cannnot find array id data!");
+  }
+  //else return error("Cannnot find array id data!");
 
   return 0;
 }
@@ -161,7 +160,8 @@ int id_add_element_info_local(char *np, int typetoken, int arraysize)
     t->arraysize = 0;
     t->etp = NULL;
     t->paratp = NULL;
-  }else return error("Cannnot find array id data!");
+  }
+  //else return error("Cannnot find array id data!");
 
   return 0;
 }
@@ -190,12 +190,12 @@ int id_add_param_info(int typetoken)
     t->etp = NULL;
     if (end == NULL) p->typ->paratp = t;
     else end->paratp = t;
-  }else return error("Cannnot find proc id data!");
+  }
+  //else return error("Cannnot find proc id data!");
 
   return 0;
 }
 
-// while compound state process.
 int id_add_reflinenum(char *np, int linenum)
 {
   switch (mode)
@@ -225,7 +225,8 @@ int id_add_reflinenum(char *np, int linenum)
     l->nextlinep = NULL;
     if (latest == NULL) p->reflinep = l;
     else latest->nextlinep = l;
-  }else return error("Cannnot find variable id data!");
+  }
+  //else return error("Cannnot find variable id data!");
 
   return 0;
 }
@@ -269,7 +270,7 @@ int search_variable_type(char *np)
   }
   struct ID *iddatap = search_idtab(np);
   // NULL check
-  if (iddatap == NULL) return error("ERROR: \"%s\" isn't delared", np);
+  if (iddatap == NULL) return error("ERROR: \"%s\" isn't declared", np);
   else if (iddatap->typ == NULL) return error("ERROR: varibale type struct didn't maked");
   else if((typetoken = iddatap->typ->ttype) == S_ERROR) return error("ERROR: varibale type not registar");
 
@@ -284,7 +285,7 @@ int search_variable_type_local(char *np)
   if (iddatap == NULL)
   {
     iddatap = search_idtab(np);
-    if (iddatap == NULL) return error("ERROR: \"%s\" isn't delared", np);
+    if (iddatap == NULL) return error("ERROR: \"%s\" isn't declared", np);
   }
   if (iddatap->typ == NULL) return error("ERROR: varibale type struct didn't maked");
   else if((typetoken = iddatap->typ->ttype) == S_ERROR) return error("ERROR: varibale type not registar");
@@ -304,10 +305,10 @@ int search_array_element_type(char *np)
   }
   struct ID *iddatap = search_idtab(np);
   // NULL check
-  if (iddatap == NULL) return error("ERROR: \"%s\" isn't delared", np);
+  if (iddatap == NULL) return error("ERROR: \"%s\" isn't declared", np);
   else if (iddatap->typ == NULL) return error("ERROR: \"%s\" type info not found", np);
-  else if (iddatap->typ->etp == NULL) return error("ERROR: \"%s\" element type isn't delared", np);
-  else if ((typetoken = iddatap->typ->etp->ttype) == S_ERROR) return error("ERROR: \"%s\" element type isn't delared", np);
+  else if (iddatap->typ->etp == NULL) return error("ERROR: \"%s\" element type isn't declared", np);
+  else if ((typetoken = iddatap->typ->etp->ttype) == S_ERROR) return error("ERROR: \"%s\" element type isn't declared", np);
   
   return typetoken;
 }
@@ -321,10 +322,10 @@ int search_array_element_type_local(char *np)
   }
   int typetoken;
   // NULL check
-  if (iddatap == NULL) return error("ERROR: \"%s\" isn't delared", np);
+  if (iddatap == NULL) return error("ERROR: \"%s\" isn't declared", np);
   else if (iddatap->typ == NULL) return error("ERROR: \"%s\" type info not found", np);
-  else if (iddatap->typ->etp == NULL) return error("ERROR: \"%s\" element type isn't delared", np);
-  else if ((typetoken = iddatap->typ->etp->ttype) == S_ERROR) return error("ERROR: \"%s\" element type isn't delared", np);
+  else if (iddatap->typ->etp == NULL) return error("ERROR: \"%s\" element type isn't declared", np);
+  else if ((typetoken = iddatap->typ->etp->ttype) == S_ERROR) return error("ERROR: \"%s\" element type isn't declared", np);
   
   return typetoken;
 }
@@ -358,6 +359,7 @@ char *get_processname()
 {
   return processname;
 }
+
 
 void check_column_size(struct ID *p){
   struct ID *idp;
@@ -466,8 +468,6 @@ void print_idtab()
     printf("\n");
   }
 }
-
-
 
 struct ID *sort_idtab(struct ID *p)
 {

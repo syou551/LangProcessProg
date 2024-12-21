@@ -1,6 +1,5 @@
 #include "scan.h"
 #include "parse.h"
-#include "idlist.h"
 
 // #region global var
 /* keyword list */

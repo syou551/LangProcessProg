@@ -1,3 +1,5 @@
+#ifndef IDLIST_H
+#define IDLIST_H
 //type check
 #include <stdarg.h>
 #define COLUMNNUM 4
@@ -33,6 +35,8 @@ extern int search_array_element_type(char *np);
 int search_array_element_type_local(char *np);
 extern int search_array_size(char *np);
 int search_array_size_local(char *np);
+extern struct TYPE *search_param_type(char *np);
+struct TYPE *search_param_type_local(char *np);
 extern int get_mode();
 extern int set_mode_local(char *np);
 extern void set_mode_global();
@@ -53,3 +57,5 @@ extern void print_idtab(void);
 
 struct ID *sort_idtab(struct ID *p);
 void check_column_size(struct ID *p);
+
+#endif

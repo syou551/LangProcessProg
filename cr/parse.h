@@ -4,6 +4,7 @@
 //#define DEBUG 
 
 #include "scan.h"
+#include "idlist.h"
 
 //remember variable names declared same state
 struct VNAME{
@@ -43,7 +44,7 @@ extern int parse_output_statement();
 
 extern int parse_variable();
 extern int parse_expression();
-extern int parse_expressions();
+extern int parse_expressions(struct TYPE *t);
 extern int parse_simple_expression();
 extern int parse_term();
 extern int parse_factor();

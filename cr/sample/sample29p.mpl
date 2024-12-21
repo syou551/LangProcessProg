@@ -8,6 +8,7 @@ program sample29;
 	/*  o : off				*/
 var unused1: integer;
     UnusedArrayForTest: array[200] of char;
+	
 procedure gcmlcm(m, n, gc, lc : integer);
 	/* gc := GCM(m,n), lc := LCM(m,n) */
 	/* m and n are not changed        */
@@ -102,7 +103,7 @@ if a = 0 then writeln('Temporary Result =', a)
 else if b = 1 then writeln('Temporary Result =', a)
 else writeln('Temporary Result =', a, '/', b)
 end;
-
+	
 var	x1, x2, y1,y2 : integer;
 var	com :char;
 endflag : boolean;

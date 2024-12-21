@@ -1,5 +1,4 @@
 #include "parse.h"
-#include "idlist.h"
 
 int token;
 int exist_iteration;
@@ -178,6 +177,7 @@ int parse_break_statement(){
 
 int parse_call_statement(){
     int type;
+    struct TYPE *t = NULL;
     print_symbol_keyword(token);
     token = scan();
     if(token != TNAME) return error("ERROR: expect procedure name");
@@ -190,6 +190,7 @@ int parse_call_statement(){
     }
     
     if(id_add_reflinenum(string_attr,get_linenum()) == S_ERROR) return S_ERROR;
+    t = search_param_type(string_attr);
     token = scan();
     if(token == TLPAREN){
         print_space();
@@ -197,7 +198,7 @@ int parse_call_statement(){
         print_space();
 
         token = scan();
-        if(parse_expressions() == S_ERROR) return S_ERROR;
+        if(parse_expressions(t) == S_ERROR) return S_ERROR;
         if(token != TRPAREN) return error("ERROR: expect \")\" next to expressions");
         print_space();
         print_symbol_keyword(token);
@@ -304,10 +305,13 @@ int parse_assign_statement(){
 
 //add search variable type func 
 int parse_variable(){
-    int type, etype, tmp;
+    int type, etype, asize, tmp;
     print_name_string(string_attr);
     if((type = search_variable_type(string_attr)) == S_ERROR) return S_ERROR;
-    else if(type == TARRAY) etype = search_array_element_type(string_attr);
+    else if(type == TARRAY) {
+        etype = search_array_element_type(string_attr);
+        asize = search_array_size(string_attr);
+    }
 
     if(id_add_reflinenum(string_attr,get_linenum()) == S_ERROR) return S_ERROR;
 
@@ -321,6 +325,7 @@ int parse_variable(){
         token = scan();
         if((tmp = parse_expression()) == S_ERROR)return S_ERROR;
         if(tmp != TINTEGER) return error("ERROR: expression next to array type isn't integer");
+        if(asize <= num_attr) return error("ERROR: out of bonds error.This array size is %d.", asize);
         if(token != TRSQPAREN)return error("ERROR: expect \"]\" next to expression");
         print_space();
         print_symbol_keyword(token);
@@ -330,14 +335,22 @@ int parse_variable(){
     return type;
 }
 
-int parse_expressions(){
-    if(parse_expression() == S_ERROR) return S_ERROR;
+int parse_expressions(struct TYPE *t){
+    int type;
+    struct TYPE *tp = t;
+    if((type = parse_expression()) == S_ERROR) return S_ERROR;
+    if(tp == NULL) return error("ERROR: this procedure don't have parameters");
+    else if(tp->ttype != type) return error("ERROR: parametar type doesn't matched");
+    tp = tp->paratp;
     while(token == TCOMMA){
         print_space();
         print_symbol_keyword(token);
         print_space();
         token = scan();
-        if(parse_expression() == S_ERROR) return S_ERROR;
+        if((type = parse_expression()) == S_ERROR) return S_ERROR;
+        if(tp == NULL) return error("ERROR: too many parameter");
+        else if(tp->ttype != type) return error("ERROR: parametar type doesn't matched");
+        tp = tp->paratp;
     }
     return 0;
 }

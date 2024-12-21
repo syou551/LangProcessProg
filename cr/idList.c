@@ -329,6 +329,38 @@ int search_array_element_type_local(char *np)
   return typetoken;
 }
 
+int search_array_size(char *np)
+{
+  switch (mode)
+  {
+  case LOCAL:
+    return search_array_size_local(np);
+  case GLOBAL:
+    break;
+  }
+  struct ID *iddatap = search_idtab(np);
+  // NULL check
+  if (iddatap == NULL) return error("ERROR: \"%s\" isn't delared", np);
+  else if (iddatap->typ == NULL) return error("ERROR: \"%s\" type info not found", np);
+  
+  return iddatap->typ->arraysize;
+}
+
+int search_array_size_local(char *np)
+{
+  struct ID *iddatap = search_idtab_local(np);
+  if(iddatap == NULL){
+    iddatap = search_idtab(np);
+    if (iddatap == NULL) return error("ERROR: \"%s\" isn't declared", np);
+  }
+  int typetoken;
+  // NULL check
+  if (iddatap == NULL) return error("ERROR: \"%s\" isn't delared", np);
+  else if (iddatap->typ == NULL) return error("ERROR: \"%s\" type info not found", np);
+  
+  return iddatap->typ->arraysize;
+}
+
 // mode get set
 // for secure mode manage
 int set_mode_local(char *np)

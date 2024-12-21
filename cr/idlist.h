@@ -31,6 +31,8 @@ extern int search_variable_type(char *np);
 extern int search_variable_type_local(char *np);
 extern int search_array_element_type(char *np);
 int search_array_element_type_local(char *np);
+extern int search_array_size(char *np);
+int search_array_size_local(char *np);
 extern int get_mode();
 extern int set_mode_local(char *np);
 extern void set_mode_global();

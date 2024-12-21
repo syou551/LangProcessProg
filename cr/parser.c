@@ -304,10 +304,13 @@ int parse_assign_statement(){
 
 //add search variable type func 
 int parse_variable(){
-    int type, etype, tmp;
+    int type, etype, asize, tmp;
     print_name_string(string_attr);
     if((type = search_variable_type(string_attr)) == S_ERROR) return S_ERROR;
-    else if(type == TARRAY) etype = search_array_element_type(string_attr);
+    else if(type == TARRAY) {
+        etype = search_array_element_type(string_attr);
+        asize = search_array_size(string_attr);
+    }
 
     if(id_add_reflinenum(string_attr,get_linenum()) == S_ERROR) return S_ERROR;
 
@@ -321,6 +324,7 @@ int parse_variable(){
         token = scan();
         if((tmp = parse_expression()) == S_ERROR)return S_ERROR;
         if(tmp != TINTEGER) return error("ERROR: expression next to array type isn't integer");
+        if(asize != num_attr) return error("ERROR: out of bonds error.This array size is %d.", asize);
         if(token != TRSQPAREN)return error("ERROR: expect \"]\" next to expression");
         print_space();
         print_symbol_keyword(token);

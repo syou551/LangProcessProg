@@ -324,7 +324,7 @@ int parse_variable(){
         token = scan();
         if((tmp = parse_expression()) == S_ERROR)return S_ERROR;
         if(tmp != TINTEGER) return error("ERROR: expression next to array type isn't integer");
-        if(asize != num_attr) return error("ERROR: out of bonds error.This array size is %d.", asize);
+        if(asize <= num_attr) return error("ERROR: out of bonds error.This array size is %d.", asize);
         if(token != TRSQPAREN)return error("ERROR: expect \"]\" next to expression");
         print_space();
         print_symbol_keyword(token);

@@ -353,7 +353,6 @@ int search_array_size_local(char *np)
     iddatap = search_idtab(np);
     if (iddatap == NULL) return error("ERROR: \"%s\" isn't declared", np);
   }
-  int typetoken;
   // NULL check
   if (iddatap == NULL) return error("ERROR: \"%s\" isn't delared", np);
   else if (iddatap->typ == NULL) return error("ERROR: \"%s\" type info not found", np);

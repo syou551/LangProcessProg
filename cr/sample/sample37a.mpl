@@ -7,7 +7,6 @@ procedure q(b:integer);
       q : array[100] of integer;
 begin
 	writeln('proc of q');
-    q[99] := x;
     point[99] := q[99];
 	a := b = q[100];
     point[0] := q[0];

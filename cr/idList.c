@@ -5,7 +5,7 @@
 
 static int mode = GLOBAL;
 static char *processname = NULL;
-static int column_size[COLUMNNUM] = {0,11+11,0,0};
+static int column_size[COLUMNNUM] = {4,11+11,0,0};
 
 struct ID *globalidroot, *localidroot;
 
@@ -44,7 +44,7 @@ int id_add_variable(char *np, int deflinenum)
   struct LINE *l;
   char *cp;
   if ((p = (struct ID *)malloc(sizeof(struct ID))) == NULL) return error("Cannot malloc for p in id_add_info");
-  if ((cp = (char *)malloc(strlen(np) + 1)) == NULL) return error("Cannot malloc for cp in id_add_info");
+  if ((cp = (char *)malloc(strlen(np) + 2)) == NULL) return error("Cannot malloc for cp in id_add_info");
   if ((t = (struct TYPE *)malloc(sizeof(struct TYPE))) == NULL) return error("Cannot malloc for t in id_add_info");
   if ((l = (struct LINE *)malloc(sizeof(struct LINE))) == NULL) return error("Cannot malloc for l in id_add_info");
   
@@ -407,19 +407,13 @@ void check_column_size(struct ID *p){
 void print_idtab()
 { /* Output the registered data */
   struct ID *p;
+  int space = 0;
   // print header
   if(globalidroot != NULL) {
     globalidroot = sort_idtab(globalidroot);
     check_column_size(globalidroot);
   }
-  printf("Name");
-  for(int i = 0;i <= (column_size[0] / 4);i++){
-    printf("\t");
-  }
-  printf("| Type");
-  for(int i = 0;i < (column_size[1] / 4) ;i++){
-    printf("\t");
-  }
+  printf("%-*s| %-*s",column_size[0],"Name", column_size[1], "Type");
   printf("| Define| References\n");
   fflush(stdout);
   
@@ -428,62 +422,45 @@ void print_idtab()
   {
     if (p->ispara)
     {
-      printf("%s:%s", p->name, p->processname);
-      for(int i = 0;i < (column_size[0]/4 + 1) - ((strlen(p->name) + 1 + strlen(p->processname))/4);i++){
-        printf("\t");
-      }
-      printf("|");
+      space = 1 + strlen(p->name);
+      printf("%s:%-*s|", p->name, column_size[0]-space, p->processname);
     }
     else{
-      printf("%s", p->name);
-      for(int i = 0;i < (column_size[0]/4 + 1) - (strlen(p->name)/4);i++){
-        printf("\t");
-      }
-      printf("|");
+      printf("%-*s|",column_size[0], p->name);
     }
     
     if (p->typ->ttype == TARRAY)
     {
-      printf(" array[%d] of %s", p->typ->arraysize, tokenstr[p->typ->etp->ttype]);
-      for(int i = 0;i < (column_size[1]/4 + 1) - ((11 + strlen(tokenstr[p->typ->etp->ttype]))/4);i++){
-        printf("\t");
-      }
-      printf("|");
+      space = column_size[1] - strlen(tokenstr[p->typ->etp->ttype]) - 13;
+      printf(" array[%d] of %-*s|", p->typ->arraysize, space, tokenstr[p->typ->etp->ttype]);
     }
     else if (p->typ->ttype == TPROCEDURE)
     {
-      if (p->typ->paratp == NULL) printf(" procedure\t\t\t\t|");
+      if (p->typ->paratp == NULL) printf(" %-*s|", column_size[1],"procedure");
       else
       {
         struct TYPE *tp;
         tp = p->typ->paratp;
         printf(" procedure(");
-        int count = 4;
+        space = 10;
         while (tp != NULL)
         {
           printf("%s", tokenstr[tp->ttype]);
-          if (tp->paratp != NULL)
+          space += strlen(tokenstr[tp->ttype]);
+          if (tp->paratp != NULL){
             printf(", ");
+            space += 2;
+          }
           tp = tp->paratp;
-          count--;
         }
-        printf(")");
-        for(int i = 0;i < count;i++){
-          printf("\t");
-        }
-        printf("|");
+        printf("%-*s|", column_size[1] - space, ")");
       }
     }
     else{
-      printf(" %s", tokenstr[p->typ->ttype]);
-      switch(p->typ->ttype){
-        case TCHAR : printf("\t\t\t\t\t");break;
-        default: printf("\t\t\t\t");break;
-      }
-      printf("|");
+      printf(" %-*s|",column_size[1], tokenstr[p->typ->ttype]);
     }
 
-    printf(" %d\t|", p->deflinenum);
+    printf(" %-*d|", 6, p->deflinenum);
     // reflinenum
     struct LINE *lp;
     lp = p->reflinep;

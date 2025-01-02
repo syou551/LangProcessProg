@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+extern FILE *cslfp;
 
 
 #endif

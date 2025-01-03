@@ -214,6 +214,11 @@ int parse_call_statement(){
     
     if(id_add_reflinenum(string_attr,get_linenum()) == S_ERROR) return S_ERROR;
     t = search_param_type(string_attr);
+
+    if(var_namep != NULL) free(var_namep);
+    if((var_namep = malloc(strlen(string_attr)+1)) == NULL) return error("ERROR: can't get memory space(in call statment)");
+    strcpy(var_namep, string_attr);
+
     token = scan();
     if(token == TLPAREN){
         print_space();
@@ -227,6 +232,8 @@ int parse_call_statement(){
         print_symbol_keyword(token);
         token = scan();
     }
+
+    gen_code("\tCALL\t$%s", var_namep);
     return 0;
 }
 
@@ -460,6 +467,7 @@ int parse_simple_expression(){
             gen_code("\tLAD\tGR2,0");
             gen_code("\tSUBA\tGR2,GR1");
             gen_code("\tLD\tGR1,GR2");
+            gen_code("\tJOV\tEOVF");
         }
     }
 
@@ -478,6 +486,8 @@ int parse_simple_expression(){
         if(ope == TPLUS) gen_code("\tADDA\tGR1,GR2");
         else if(ope == TMINUS) gen_code("\tSUBA\tGR1,GR2");
         else if(ope == TOR) gen_code("\tOR\tGR1,GR2");
+
+        gen_code("\tJOV\tEOVF");
     }
     return type;
 }
@@ -499,6 +509,8 @@ int parse_term(){
         if(ope == TSTAR) gen_code("\tMULA\tGR1,GR2") ;
         else if(ope == TDIV) gen_code("\tDIVA\tGR1,GR2");
         else if(ope == TAND) gen_code("\tAND\tGR1,GR2");
+
+        gen_code("\tJOV\tEOVF");
     }
     return type;
 }

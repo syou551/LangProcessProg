@@ -121,6 +121,9 @@ int parse_if_statement(){
     token = scan();
     if((type = parse_expression()) == S_ERROR) return S_ERROR;
     if(type != TBOOLEAN) return error("ERROR: expression in if statement must have boolean return value");
+    int jumplabel = gen_new_label_num();
+    gen_code("\tCPA\tGR1,GR0");
+    gen_code("\tJPL\tL%04d", jumplabel);
     
     if(token != TTHEN) return error("ERROR: expect \"then\" next to expression");
     print_space();
@@ -133,6 +136,9 @@ int parse_if_statement(){
     if(parse_statement() == S_ERROR) return S_ERROR;
 
     remove_indent();
+    int endlabel = gen_new_label_num();
+    gen_code("\tJUMP\tL%04d", endlabel);
+    gen_label(jumplabel);
     if(token == TELSE){
         print_linebreak();
         print_indent();
@@ -144,7 +150,8 @@ int parse_if_statement(){
         token = scan();
         if(parse_statement() == S_ERROR) return S_ERROR;
         remove_indent();
-    }
+    }else gen_code("\tNOP");
+    gen_label(endlabel);
     return 0;
 }
 

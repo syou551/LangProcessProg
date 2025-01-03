@@ -1,4 +1,5 @@
 #include "makeCode.h"
+#include "scan.h"
 
 static int labelcounter = 1;
 
@@ -6,8 +7,29 @@ int get_new_label_num(void) {
     return labelcounter++;
 }
 
-void gen_code(char *code) {
-    fprintf(cslfp, "\t%s\n", code);
+void gen_code(char *code,...) {
+    va_list ap;
+    va_start(ap, code);
+
+    fprintf(cslfp,"\t");
+    vfprintf(cslfp, ap, code);
+    fprintf(cslfp,"\n");
+
+    va_end(ap);
+}
+
+void print_code(char *code, ...){
+    va_list ap;
+    va_start(ap, code);
+
+    fprintf(cslfp,"\t");
+    vfprintf(cslfp, ap, code);
+
+    va_end(ap); 
+}
+
+void print_code_linebreak(){
+    fprintf(cslfp, "\n");
 }
 
 void gen_code_label(char *code, int label) {
@@ -16,6 +38,23 @@ void gen_code_label(char *code, int label) {
 
 void gen_label(int label) { 
     fprintf(cslfp, "L%04d\tDS\t0\n", label);
+}
+
+char *get_symbol_keyword(int token){
+    int i = 0;
+    for(i = 0;i < KEYWORDSIZE;i++){
+        if(token == key[i].keytoken){
+            return key[i].keyword;
+        }
+    }
+    for(i = 0;i < SYMBOLSIZE; i++){
+        if(token == sym[i].symtoken){
+            return sym[i].symbol;
+            //return; comment out for C2 coverage 
+        }
+    }
+
+    return NULL;
 }
 
 void outlib(void) {

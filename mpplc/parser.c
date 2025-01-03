@@ -167,6 +167,8 @@ int parse_while_statement(){
     token = scan();
     if((type = parse_expression()) == S_ERROR) return S_ERROR;
     if(type != TBOOLEAN) return error("ERROR: expression in while statement must have boolean return value");
+    int jumplabel = gen_new_label_num();
+    gen_label(jumplabel);
     gen_code("\tCPA\tGR1,GR0");
     gen_code("\tJZE\tL%04d", endlabel);
 
@@ -181,6 +183,7 @@ int parse_while_statement(){
     if(parse_statement() == S_ERROR) return S_ERROR;
     exist_iteration--;
     remove_indent();
+    gen_code("\tJUMP\tL%04d", jumplabel);
     gen_label(endlabel);
     return 0;
 }
@@ -191,6 +194,7 @@ int parse_break_statement(){
     token = scan();
     if(exist_iteration < 1)
         return error("ERROR: break statement must be included  in at least one iteration statement");
+    gen_code("\tRET");
     return 0;
 }
 

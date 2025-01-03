@@ -39,8 +39,8 @@ extern int parse_while_statement();
 extern int parse_break_statement();
 extern int parse_call_statement();
 extern int parse_return_statement();
-extern int parse_input_statement();
-extern int parse_output_statement();
+extern int parse_input_statement(int st_token);
+extern int parse_output_statement(int st_token);
 
 extern int parse_variable();
 extern int parse_expression();

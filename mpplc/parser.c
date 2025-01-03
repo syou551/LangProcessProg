@@ -110,8 +110,8 @@ int parse_statement(){
         token = scan();
         return 0;
     }
-    else if(token == TREAD || token == TREADLN) return parse_input_statement();
-    else if(token == TWRITE || token == TWRITELN) return parse_output_statement();
+    else if(token == TREAD || token == TREADLN) return parse_input_statement(token);
+    else if(token == TWRITE || token == TWRITELN) return parse_output_statement(token);
     //empty statement
     else return 0;
 }
@@ -254,7 +254,7 @@ int parse_return_statement(){
     return 0;
 }
 
-int parse_input_statement(){
+int parse_input_statement(int st_token){
     int type;
     print_symbol_keyword(token);
     token = scan();
@@ -266,14 +266,24 @@ int parse_input_statement(){
         token = scan();
         if((type = parse_variable()) == S_ERROR) return S_ERROR;
         if(type != TINTEGER && type != TCHAR) return error("ERROR: variable in input statement required integer or char type");
+        
+        if(type == TINTEGER)gen_code("\tCALL\tREADINT");
+        else gen_code("\tCALL\tREADCAHR");
+
         while(token == TCOMMA){
             print_space();
             print_symbol_keyword(token);
             print_space();
             token = scan();
-            if(parse_variable() == S_ERROR) return S_ERROR;
+            if((type = parse_variable()) == S_ERROR) return S_ERROR;
+            if(type != TINTEGER && type != TCHAR) return error("ERROR: variable in input statement required integer or char type");
+
+            if(type == TINTEGER)gen_code("\tCALL\tREADINT");
+            else gen_code("\tCALL\tREADCAHR");
         }
         if(token != TRPAREN) return error("ERROR: expect \")\" next to variable");
+        
+        if(st_token == TREADLN) gen_code("\tCALL\tREADLINE");
         print_space();
         print_symbol_keyword(token);
         token = scan();
@@ -281,7 +291,7 @@ int parse_input_statement(){
     return 0;
 }
 
-int parse_output_statement(){
+int parse_output_statement(int st_token){
     print_symbol_keyword(token);
     token = scan();
     if(token == TLPAREN){
@@ -300,6 +310,9 @@ int parse_output_statement(){
         print_symbol_keyword(token);
         token = scan();
     }
+
+    if(st_token == TWRITELN) gen_code("\tCALL\tWRITELINE");
+    
     return 0; 
 }
 
@@ -309,12 +322,16 @@ int parse_output_format(){
         //print
         print_space();
         print_name_string(string_attr);
+        gen_code("\tLAD\tGR1,=%s", string_attr);
+        gen_code("\tLAD\tGR2,0");
+        gen_code("\rCALL\tWRITESTR");
         token = scan();
     }else{
         int type;
         print_space();
         if((type = parse_expression()) == S_ERROR) return S_ERROR;
         if(type != TINTEGER && type != TCHAR && type != TBOOLEAN) return error("ERROR: expression of output format required standard type");
+        
         if(token == TCOLON){
             print_space();
             print_symbol_keyword(token);
@@ -322,8 +339,13 @@ int parse_output_format(){
             if(token != TNUMBER) return error("ERROR: exprect number next to \":\"");
             print_space();
             print_name_string(string_attr);
+            gen_code("\tLAD\tGR2,%d", num_attr);
             token = scan();
-        }
+        }else gen_code("\tLAD\tGR2,0");
+
+        if(type == TINTEGER) gen_code("\tCALL\tWRITEINT");
+        else if(type == TBOOLEAN) gen_code("\tCALL\tWRITEBOOL");
+        else if(type == TCHAR) gen_code("\tCALL\tWRITECHAR");
     }
     return 0;
 }

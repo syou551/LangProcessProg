@@ -56,6 +56,7 @@ int parse_block(){
     remove_indent();
     print_indent();
     gen_code("L0001");
+    gen_code("\tLAD\tGR0,0");
     if(parse_compound_statement() == S_ERROR) return S_ERROR;
     return 0;
 }
@@ -160,11 +161,14 @@ int parse_while_statement(){
     exist_iteration++;
 
     int type;
+    int endlabel = gen_new_label_num();
     print_symbol_keyword(token);
     print_space();
     token = scan();
     if((type = parse_expression()) == S_ERROR) return S_ERROR;
     if(type != TBOOLEAN) return error("ERROR: expression in while statement must have boolean return value");
+    gen_code("\tCPA\tGR1,GR0");
+    gen_code("\tJZE\tL%04d", endlabel);
 
     if(token != TDO) return error("ERROR: exprect \"do\" next to expression");
     print_space();
@@ -177,6 +181,7 @@ int parse_while_statement(){
     if(parse_statement() == S_ERROR) return S_ERROR;
     exist_iteration--;
     remove_indent();
+    gen_label(endlabel);
     return 0;
 }
 

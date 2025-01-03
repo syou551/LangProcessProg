@@ -2,6 +2,8 @@
 #include "scan.h"
 
 static int labelcounter = 1;
+static struct LABEL *labelroot = NULL;
+
 
 int get_new_label_num(void) {
     return labelcounter++;
@@ -55,6 +57,31 @@ char *get_symbol_keyword(int token){
     }
 
     return NULL;
+}
+
+int push_label_list(int labelnum){
+    if(labelroot == NULL){
+        if((labelroot = malloc(sizeof(struct LABEL))) == NULL) return error("ERROR: can't get memory space for LABEL list");
+        labelroot->labelnum = labelnum;
+        labelroot->next = NULL;
+    }else{
+        struct LABEL *p = NULL;
+        if((p = malloc(sizeof(struct LABEL))) == NULL) return error("ERROR: can't get memory space for LABEL list");
+        p->labelnum = labelnum;
+        p->next = labelroot;
+        labelroot = p;
+    }
+    return 0;
+}
+
+int pop_label_list(){
+    if(labelroot == NULL) return S_ERROR;
+    int tmp = labelroot->labelnum;
+    struct LABEL *p = labelroot;
+    labelroot = labelroot->next;
+    labelroot->next = NULL;
+    free(p);
+    return tmp;
 }
 
 void outlib(void) {

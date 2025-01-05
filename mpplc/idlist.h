@@ -41,6 +41,9 @@ extern int get_mode();
 extern int set_mode_local(char *np);
 extern void set_mode_global();
 extern char *get_processname();
+extern void set_param();
+extern void reset_param();
+extern int check_is_param(char *np);
 
 
 extern void release_idtab(void);

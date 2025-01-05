@@ -1,7 +1,7 @@
 # MYLIBDIR=
 # MYLIB=
 # CFLAGS=-I${MYLIBDIR} -L${MYLIBDIR}
-OBJS=fileHandle.o main.o scan.o parser.o idList.o makeCode.o#prettyPrint.o
+OBJS=fileHandle.o main.o scan.o parser.o idList.o makeCode.o prettyPrint.o
 
 all: mpplc
 

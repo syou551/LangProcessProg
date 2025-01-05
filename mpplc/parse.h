@@ -1,10 +1,11 @@
 #ifndef PARSE_H
 #define PARSE_H
 
-//#define DEBUG 
+#define DEBUG 
 
 #include "scan.h"
 #include "idlist.h"
+#include "makeCode.h"
 
 //remember variable names declared same state
 struct VNAME{

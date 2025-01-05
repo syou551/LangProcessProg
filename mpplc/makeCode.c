@@ -5,7 +5,7 @@ static int labelcounter = 1;
 static struct LABEL *labelroot = NULL;
 
 
-int get_new_label_num(void) {
+int gen_new_label_num(void) {
     return labelcounter++;
 }
 
@@ -13,8 +13,7 @@ void gen_code(char *code,...) {
     va_list ap;
     va_start(ap, code);
 
-    fprintf(cslfp,"\t");
-    vfprintf(cslfp, ap, code);
+    vfprintf(cslfp, code, ap);
     fprintf(cslfp,"\n");
 
     va_end(ap);
@@ -39,7 +38,7 @@ void gen_code_label(char *code, int label) {
 }
 
 void gen_label(int label) { 
-    fprintf(cslfp, "L%04d\tDS\t0\n", label);
+    fprintf(cslfp, "L%04d\n", label);
 }
 
 char *get_symbol_keyword(int token){
@@ -79,7 +78,7 @@ int pop_label_list(){
     int tmp = labelroot->labelnum;
     struct LABEL *p = labelroot;
     labelroot = labelroot->next;
-    labelroot->next = NULL;
+    p->next = NULL;
     free(p);
     return tmp;
 }

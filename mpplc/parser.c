@@ -786,8 +786,7 @@ int parse_var_dec(){
 
     for(tmp = p;tmp != NULL;tmp = tmp->np){
         int arraysize = search_array_size(tmp->name);
-        if(get_mode() == LOCAL) 
-            gen_code("$%s%%%s\t%s\t%d", tmp->name, get_processname(), (arraysize == 0) ? "DC":"DS", arraysize);
+        if(get_mode() == LOCAL) gen_code("$%s%%%s\t%s\t%d", tmp->name, get_processname(), (arraysize == 0) ? "DC":"DS", arraysize);
         else gen_code("$%s\t%s\t%d", tmp->name, (arraysize == 0) ? "DC":"DS", arraysize);
     }
 
@@ -814,8 +813,7 @@ int parse_var_dec(){
 
         for(tmp = p;tmp != NULL;tmp = tmp->np){
             int arraysize = search_array_size(tmp->name);
-            if(get_mode() == LOCAL) 
-                gen_code("$%s%%%s\t%s\t%d", tmp->name, get_processname(), (arraysize == 0) ? "DC":"DS", arraysize);
+            if(get_mode() == LOCAL) gen_code("$%s%%%s\t%s\t%d", tmp->name, get_processname(), (arraysize == 0) ? "DC":"DS", arraysize);
             else gen_code("$%s\t%s\t%d", tmp->name, (arraysize == 0) ? "DC":"DS", arraysize);
         }
         

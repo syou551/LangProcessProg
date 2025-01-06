@@ -601,6 +601,7 @@ int parse_term(){
         else if(ope == TAND) gen_code("\tAND\tGR1,GR2");
 
         gen_code("\tJOV\tEOVF");
+        notvariable = 1;
     }
     return type;
 }

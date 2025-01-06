@@ -676,6 +676,8 @@ int parse_factor(){
         token = scan();
         if((type = parse_factor())== S_ERROR) return S_ERROR;
         if(type != TBOOLEAN) return error("ERROR: next \"not\" is required boolean");
+        if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
+
         gen_code("\tCPL\tGR1,GR0");
         int jumplabel = gen_new_label_num();
         gen_code("\tJZE\tL%04d", jumplabel);

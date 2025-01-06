@@ -11,7 +11,7 @@ mpplc: ${OBJS}
 
 test: ${OBJS}
 	gcc -coverage -c fileHandle.c main.c scan.c parser.c idList.c
-	gcc -coverage -o cr $^
+	gcc -coverage -o mpplc $^
 	bash test.sh
 	gcov -b *.gcda
 

@@ -7,7 +7,6 @@ int notvariable = 0;
 char *var_namep = NULL;
 
 int parse_program(){
-    printf("start parse...\n");
     token = scan();
     if(token != TPROGRAM) return error("ERROR: program must beign with \"program\"");
     print_symbol_keyword(token);

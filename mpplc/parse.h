@@ -1,7 +1,7 @@
 #ifndef PARSE_H
 #define PARSE_H
 
-#define DEBUG 
+//#define DEBUG 
 
 #include "scan.h"
 #include "idlist.h"

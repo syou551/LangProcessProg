@@ -24,7 +24,7 @@ void print_code(char *code, ...){
     va_start(ap, code);
 
     fprintf(cslfp,"\t");
-    vfprintf(cslfp, ap, code);
+    vfprintf(cslfp, code, ap);
 
     va_end(ap); 
 }

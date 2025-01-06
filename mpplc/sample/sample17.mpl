@@ -4,8 +4,8 @@ var m, n, a, b, r : integer;
 begin
 	writeln('Input two integers');
 	readln(m, n);
-	a := 3;
-	b := 4;
+	a := m;
+	b := n;
 	while b <> 0 do begin
 		r := a - (a div b) * b;
 		a := b;

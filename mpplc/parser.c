@@ -127,6 +127,7 @@ int parse_if_statement(){
     token = scan();
     if((type = parse_expression()) == S_ERROR) return S_ERROR;
     if(type != TBOOLEAN) return error("ERROR: expression in if statement must have boolean return value");
+    if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
     notvariable = 0;
     int jumplabel = gen_new_label_num();
     gen_code("\tCPA\tGR1,GR0");
@@ -177,6 +178,7 @@ int parse_while_statement(){
     gen_label(jumplabel);
     if((type = parse_expression()) == S_ERROR) return S_ERROR;
     if(type != TBOOLEAN) return error("ERROR: expression in while statement must have boolean return value");
+    if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
     notvariable = 0;
     gen_code("\tCPA\tGR1,GR0");
     gen_code("\tJZE\tL%04d", endlabel);
@@ -336,6 +338,8 @@ int parse_output_format(){
         if((type = parse_expression()) == S_ERROR) return S_ERROR;
         if(type != TINTEGER && type != TCHAR && type != TBOOLEAN) return error("ERROR: expression of output format required standard type");
         
+        if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
+        notvariable = 0;
         if(token == TCOLON){
             print_space();
             print_symbol_keyword(token);
@@ -368,6 +372,7 @@ int parse_assign_statement(){
     token = scan();
     if((exptype = parse_expression())==S_ERROR)return S_ERROR;
     if(type != exptype) return error("ERROR: variable \"%s\" type don't match expression type", string_attr);
+    if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
     notvariable = 0;
     
     gen_code("\tPOP\tGR2");
@@ -404,6 +409,7 @@ int parse_variable(){
         token = scan();
         if((tmp = parse_expression()) == S_ERROR)return S_ERROR;
         if(tmp != TINTEGER) return error("ERROR: expression next to array type isn't integer");
+        if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
         notvariable = 0;
         //if(asize <= num_attr) return error("ERROR: out of bonds error.This array size is %d.", asize);
         gen_code("\tCPA\tGR1,GR0");
@@ -414,7 +420,7 @@ int parse_variable(){
         
         if(get_mode() ==LOCAL){
             if(isparam == 1) gen_code("\tLD\tGR1,$$%s%%%s,GR1", var_namep, get_processname());
-            else if(isparam == -1) gen_code("\tLD\tGR1,$%s,GR1", var_namep);
+            else if(isparam == -1) gen_code("\tLAD\tGR1,$%s,GR1", var_namep);
             else gen_code("\tLAD\tGR1,$%s%%%s,GR1", var_namep, get_processname());
         }else gen_code("\tLAD\tGR1,$%s,GR1",var_namep);
 
@@ -426,7 +432,7 @@ int parse_variable(){
     }else{
         if(get_mode() ==LOCAL){
             if(isparam == 1) gen_code("\tLD\tGR1,$$%s%%%s", var_namep, get_processname());
-            else if(isparam == -1) gen_code("\tLD\tGR1,$%s", var_namep);
+            else if(isparam == -1) gen_code("\tLAD\tGR1,$%s", var_namep);
             else gen_code("\tLAD\tGR1,$%s%%%s", var_namep, get_processname());
         }else gen_code("\tLAD\tGR1,$%s",var_namep);
     }
@@ -483,7 +489,7 @@ int parse_expression(){
     rtype = type;
     while(token == TEQUAL || token == TNOTEQ || token == TLE || token == TLEEQ || token == TGR || token == TGREQ){
         int ope = token;
-        notvariable = 1;
+        if(notvariable == 0)  gen_code("\tLD\tGR1,0,GR1");
         gen_code("\tPUSH\t0,GR1");
         print_space();
         print_symbol_keyword(token);
@@ -491,6 +497,8 @@ int parse_expression(){
         token = scan();
         if((tmp = parse_simple_expression()) == S_ERROR) return S_ERROR;
         if(tmp != type) return error("ERROR: expression type don't match");
+
+        if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
         gen_code("\tPOP\tGR2");
 
         gen_code("\tCPA\tGR2,GR1");
@@ -510,6 +518,7 @@ int parse_expression(){
         gen_code("\tLAD\tGR1,1");
         gen_label(endlabel);
         rtype = TBOOLEAN;
+        notvariable = 1;
     }
     return rtype;
 }
@@ -518,7 +527,6 @@ int parse_expression(){
 int parse_simple_expression(){
     int type = 0 , termtype, headope = 0;
     if(token == TPLUS || token == TMINUS){
-        notvariable = 1;
         print_symbol_keyword(token);
         print_space();
         type = TINTEGER;
@@ -526,22 +534,27 @@ int parse_simple_expression(){
         token = scan();
     }
     if((termtype = parse_term()) == S_ERROR) return S_ERROR;
+
+    if(headope != 0 && notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
     if(type == TINTEGER && termtype != type) {
         return error("ERROR: + or - is operator for integer");
     }else if(type == TINTEGER){
+        //when +, it is not variable
         if(headope == TMINUS){
             gen_code("\tLAD\tGR2,0");
             gen_code("\tSUBA\tGR2,GR1");
             gen_code("\tLD\tGR1,GR2");
             gen_code("\tJOV\tEOVF");
         }
+        notvariable = 1;
     }
 
     type = termtype;
     while(token == TPLUS || token == TMINUS || token == TOR){
         int ope = token;
-        notvariable = 1;
         if(get_demand_type(token) != type) return error("ERROR: operator is incorrect");
+        if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
+
         gen_code("\tPUSH\t0,GR1");
         print_space();
         print_symbol_keyword(token);
@@ -549,6 +562,8 @@ int parse_simple_expression(){
         token = scan();
         if((termtype = parse_term()) == S_ERROR) return S_ERROR;
         if(termtype != type) return error("ERROR: term type don't match demand type");
+
+        if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
         gen_code("\tPUSH\t0,GR1");
         gen_code("\tPOP\tGR2");
         gen_code("\tPOP\tGR1");
@@ -557,6 +572,7 @@ int parse_simple_expression(){
         else if(ope == TOR) gen_code("\tOR\tGR1,GR2");
 
         gen_code("\tJOV\tEOVF");
+        notvariable = 1;
     }
     return type;
 }
@@ -564,9 +580,10 @@ int parse_simple_expression(){
 int parse_term(){
     int type, tmp;
     if((type = parse_factor()) == S_ERROR) return S_ERROR;
+
     while(token == TSTAR || token == TDIV || token == TAND){
         int ope = token;
-        notvariable = 1;
+        if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
         if(get_demand_type(token) != type) return error("ERROR: operator incorrect");
         gen_code("\tPUSH\t0,GR1");
         print_space();
@@ -575,6 +592,8 @@ int parse_term(){
         token = scan();
         if((tmp = parse_factor()) == S_ERROR) return S_ERROR;
         if(tmp != type) return error("ERROR: incorrect factor type");
+
+        if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
         gen_code("\tPUSH\t0,GR1");
         gen_code("\tPOP\tGR2");
         gen_code("\tPOP\tGR1");
@@ -625,7 +644,7 @@ int parse_factor(){
     int type, tmp;
     if(token == TNAME){
         if((type = parse_variable()) == S_ERROR) return S_ERROR;
-        gen_code("\tLD\tGR1,0,GR1");
+        notvariable = 0;
     }else if(token == TNUMBER || token == TFALSE || token == TTRUE || token == TSTRING){
         //print
         type = get_demand_type(token);
@@ -645,6 +664,7 @@ int parse_factor(){
         print_space();
         token = scan();
         if((type = parse_expression()) == S_ERROR)return S_ERROR;
+        if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
         if(token != TRPAREN) return error("ERROR: expect \")\" next to expression");
         print_space();
         print_symbol_keyword(token);
@@ -680,6 +700,7 @@ int parse_factor(){
         if((tmp = parse_expression()) == S_ERROR) return S_ERROR;
         if(tmp != TINTEGER && tmp != TBOOLEAN && tmp != TCHAR) return error("ERROR: cast is required standard type expression");
         if(token != TRPAREN) return error("ERROR: exprect \")\" next to expression");
+        if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
 
         gen_code_parse(parseto, tmp);
         print_space();
@@ -931,12 +952,16 @@ int parse_sub_program(){
         remove_indent();
     }
     gen_code("$%s", get_processname());
-    gen_code("\tPOP\tGR2");
-    for(;typ != NULL; typ = typ->paratp){
+    gen_code("\tPOP\tGR2");        
+    //add search param name
+    struct VNAME *paramnames = search_param_name(get_processname());
+    struct VNAME *p = paramnames;
+    for(;p != NULL; p = p->np){
         gen_code("\tPOP\tGR1");
-        //add search param name
-        //add push addr of formal params
+        gen_code("\tST\tGR1,$$%s%%%s", p->name, get_processname());
     }
+    release_variable_name(&paramnames);
+
     gen_code("\tPUSH\t0,GR2");
 
     print_indent();
@@ -947,6 +972,7 @@ int parse_sub_program(){
     print_linebreak();
 
     set_mode_global();
+    gen_code("\tRET");
     return 0;
 }
 

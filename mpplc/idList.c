@@ -400,6 +400,28 @@ struct TYPE *search_param_type_local(char *np){
   return iddatap->typ->paratp;
 }
 
+struct VNAME *search_param_name(char *np){
+  struct ID *p = localidroot;
+  struct VNAME *namep = NULL, *root = NULL;
+  for(;p != NULL; p = p->nextp){
+    if(p->ispara) {
+      if((namep = (struct VNAME *)malloc(sizeof(struct VNAME))) == NULL) return NULL;
+      if((namep->name = (char *)malloc(strlen(p->name)+1)) == NULL) return NULL;
+      strcpy(namep->name, p->name);
+      namep->np = NULL;
+      if(root == NULL) root = namep;
+      else{
+        struct VNAME *tmp = root;
+        while(tmp->np != NULL) 
+          tmp = tmp->np;
+        tmp->np = namep;
+      }
+    }
+  }
+
+  return root;
+}
+
 // mode get set
 // for secure mode manage
 int set_mode_local(char *np)

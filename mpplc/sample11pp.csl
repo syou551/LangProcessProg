@@ -1,6 +1,10 @@
 %%sample11pp	START	L0001
 $$n%kazuyomikomi	DC	0
 $kazuyomikomi
+	POP	GR2
+	POP	GR1
+	ST	GR1,$$n%kazuyomikomi
+	PUSH	0,GR2
 	LAD	GR1,='input the number of data'
 	LAD	GR2,0
 	CALL	WRITESTR
@@ -8,21 +12,31 @@ $kazuyomikomi
 	LD	GR1,$$n%kazuyomikomi
 	CALL	READINT
 	CALL	READLINE
+	RET
 $sum	DC	0
 $wakakidasi
+	POP	GR2
+	PUSH	0,GR2
 	LAD	GR1,='Sum of data = '
 	LAD	GR2,0
 	CALL	WRITESTR
-	LD	GR1,$sum
+	LAD	GR1,$sum
 	LD	GR1,0,GR1
 	LAD	GR2,0
 	CALL	WRITEINT
 	CALL	WRITELINE
+	RET
 $data	DC	0
 $$s%goukei	DC	0
 $$n%goukei	DC	0
 $data%goukei	DC	0
 $goukei
+	POP	GR2
+	POP	GR1
+	ST	GR1,$$s%goukei
+	POP	GR1
+	ST	GR1,$$n%goukei
+	PUSH	0,GR2
 	LD	GR1,$$s%goukei
 	PUSH	0,GR1
 	LAD	GR1,0
@@ -75,11 +89,11 @@ L0005
 	ST	GR1,0,GR2
 	JUMP	L0003
 L0002
+	RET
 $n	DC	0
 L0001
 	LAD	GR0,0
 	LAD	GR1,$n
-	LD	GR1,0,GR1
 	PUSH	0,GR1
 	CALL	$kazuyomikomi
 	LAD	GR1,$n
@@ -95,7 +109,6 @@ L0001
 	ST	GR1,0,GR2
 	PUSH	0,GR2
 	LAD	GR1,$sum
-	LD	GR1,0,GR1
 	PUSH	0,GR1
 	CALL	$goukei
 	CALL	$wakakidasi

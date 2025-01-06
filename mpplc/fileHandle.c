@@ -42,7 +42,6 @@ int init_scan(char *filename){
     strcat(path, fname);
     free(fname);
 
-    printf("%s",path);
     cslfp = fopen(path, "w");
     free(path);
     return 0;

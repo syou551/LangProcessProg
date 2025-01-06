@@ -273,7 +273,7 @@ int parse_input_statement(int st_token){
         if(type != TINTEGER && type != TCHAR) return error("ERROR: variable in input statement required integer or char type");
         
         if(type == TINTEGER)gen_code("\tCALL\tREADINT");
-        else gen_code("\tCALL\tREADCAHR");
+        else gen_code("\tCALL\tREADCHAR");
 
         while(token == TCOMMA){
             print_space();
@@ -284,7 +284,7 @@ int parse_input_statement(int st_token){
             if(type != TINTEGER && type != TCHAR) return error("ERROR: variable in input statement required integer or char type");
 
             if(type == TINTEGER)gen_code("\tCALL\tREADINT");
-            else gen_code("\tCALL\tREADCAHR");
+            else gen_code("\tCALL\tREADCHAR");
         }
         if(token != TRPAREN) return error("ERROR: expect \")\" next to variable");
         

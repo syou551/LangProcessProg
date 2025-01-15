@@ -55,7 +55,7 @@ int main(int nc, char *np[]) {
   /* 作成する部分：構文解析を行う */
   if(parse_program() != S_ERROR){
     //id table output
-    print_idtab();
+    //print_idtab();
   }
 
   end_scan();

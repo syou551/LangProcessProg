@@ -1,7 +1,7 @@
 # MYLIBDIR=
 # MYLIB=
 # CFLAGS=-I${MYLIBDIR} -L${MYLIBDIR}
-OBJS=fileHandle.o main.o scan.o parser.o idList.o makeCode.o#prettyPrint.o
+OBJS=fileHandle.o main.o scan.o parser.o idList.o makeCode.o #prettyPrint.o
 
 all: mpplc
 
@@ -11,7 +11,7 @@ mpplc: ${OBJS}
 
 test: ${OBJS}
 	gcc -coverage -c fileHandle.c main.c scan.c parser.c idList.c
-	gcc -coverage -o cr $^
+	gcc -coverage -o mpplc $^
 	bash test.sh
 	gcov -b *.gcda
 

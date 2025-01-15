@@ -2,6 +2,7 @@
 #include "idlist.h"
 
 static int mode = GLOBAL;
+static int param = 0;
 static char *processname = NULL;
 static int column_size[COLUMNNUM] = {4,11+11,0,0};
 
@@ -20,7 +21,7 @@ struct ID *search_idtab(char *np)
   for (p = globalidroot; p != NULL; p = p->nextp)
   {
     if (strcmp(np, p->name) == 0)
-      if (!(p->ispara)) return p;
+      if (!(p->processname)) return p;
   }
   return NULL;
 }
@@ -49,7 +50,7 @@ int id_add_variable(char *np, int deflinenum)
   strcpy(cp, np);
   p->name = cp;
   p->processname = NULL;
-  p->ispara = get_mode();
+  p->ispara = 0;
 
   p->typ = t;
   p->deflinenum = deflinenum;
@@ -109,7 +110,7 @@ int id_add_info_local(char *np, char *processnp, int typetoken)
 
   strcpy(procp, processnp);
   p->processname = procp;
-  p->ispara = 1;
+  p->ispara = param;
   t->ttype = typetoken;
   t->arraysize = 0;
   t->etp = NULL;
@@ -258,6 +259,14 @@ int id_add_reflinenum_local(char *np, int linenum)
   return 0;
 }
 
+int check_is_param(char *np){
+  struct ID *p = search_idtab_local(np);
+  if(p == NULL) return -1;
+  else if(p->ispara) return 1;
+
+  return 0;
+}
+
 int search_variable_type(char *np)
 {
   int typetoken;
@@ -391,6 +400,28 @@ struct TYPE *search_param_type_local(char *np){
   return iddatap->typ->paratp;
 }
 
+struct VNAME *search_param_name(char *np){
+  struct ID *p = localidroot;
+  struct VNAME *namep = NULL, *root = NULL;
+  for(;p != NULL; p = p->nextp){
+    if(p->ispara) {
+      if((namep = (struct VNAME *)malloc(sizeof(struct VNAME))) == NULL) return NULL;
+      if((namep->name = (char *)malloc(strlen(p->name)+1)) == NULL) return NULL;
+      strcpy(namep->name, p->name);
+      namep->np = NULL;
+      if(root == NULL) root = namep;
+      else{
+        struct VNAME *tmp = root;
+        while(tmp->np != NULL) 
+          tmp = tmp->np;
+        tmp->np = namep;
+      }
+    }
+  }
+
+  return root;
+}
+
 // mode get set
 // for secure mode manage
 int set_mode_local(char *np)
@@ -409,6 +440,14 @@ void set_mode_global()
   mode = GLOBAL;
   if (processname != NULL) free(processname);
   clear_idtab_local();
+}
+
+void set_param(){
+  param = 1;
+}
+
+void reset_param(){
+  param = 0;
 }
 
 int get_mode()

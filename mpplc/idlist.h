@@ -37,10 +37,14 @@ extern int search_array_size(char *np);
 int search_array_size_local(char *np);
 extern struct TYPE *search_param_type(char *np);
 struct TYPE *search_param_type_local(char *np);
+extern struct VNAME *search_param_name(char *np);
 extern int get_mode();
 extern int set_mode_local(char *np);
 extern void set_mode_global();
 extern char *get_processname();
+extern void set_param();
+extern void reset_param();
+extern int check_is_param(char *np);
 
 
 extern void release_idtab(void);

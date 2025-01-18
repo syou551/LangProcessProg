@@ -606,10 +606,10 @@ int parse_term(){
     return type;
 }
 
-void gen_code_parse(int parseto, int exptype){
+void gen_code_cast(int castto, int exptype){
     if(exptype == TINTEGER){
-        if(parseto == TINTEGER){}
-        else if(parseto == TBOOLEAN){
+        if(castto == TINTEGER){}
+        else if(castto == TBOOLEAN){
             gen_code("\tCPL\tGR1,GR0");
             int jumplabel = gen_new_label_num();
             gen_code("\tJZE\tL%04d", jumplabel);
@@ -619,23 +619,23 @@ void gen_code_parse(int parseto, int exptype){
             gen_label(jumplabel);
             gen_code("\tLAD\tGR1,0");
             gen_label(endlabel);
-        }else if(parseto == TCHAR){
+        }else if(castto == TCHAR){
             gen_code("\tLAD\tGR2,#007F");
             gen_code("\tAND\tGR1,GR2");
         }
     }else if(exptype == TBOOLEAN){
-        if(parseto == TINTEGER){/*boolean value is already logical val*/}
-        else if(parseto == TBOOLEAN){}
-        else if(parseto == TCHAR){/*char code link to logical val*/}
+        if(castto == TINTEGER){/*boolean value is already logical val*/}
+        else if(castto == TBOOLEAN){}
+        else if(castto == TCHAR){/*char code link to logical val*/}
     }else if(exptype == TCHAR){
-        if(parseto == TINTEGER){/*same value with char code*/}
-        else if(parseto == TBOOLEAN){
+        if(castto == TINTEGER){/*same value with char code*/}
+        else if(castto == TBOOLEAN){
             gen_code("\tCPL\tGR1,GR0");
             int jumplabel = gen_new_label_num();
             gen_code("\tJZE\tL%04d", jumplabel);
             gen_code("\tLAD\tGR1,1");
             gen_label(jumplabel);
-        }else if(parseto == TCHAR){}
+        }else if(castto == TCHAR){}
     }
 }
 
@@ -704,7 +704,7 @@ int parse_factor(){
         if(token != TRPAREN) return error("ERROR: exprect \")\" next to expression");
         if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
 
-        gen_code_parse(parseto, tmp);
+        gen_code_cast(parseto, tmp);
         print_space();
         print_symbol_keyword(token);
         token = scan();

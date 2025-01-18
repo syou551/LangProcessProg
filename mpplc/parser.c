@@ -410,7 +410,7 @@ int parse_variable(){
         if(tmp != TINTEGER) return error("ERROR: expression next to array type isn't integer");
         if(notvariable == 0) gen_code("\tLD\tGR1,0,GR1");
         notvariable = 0;
-        //if(asize <= num_attr) return error("ERROR: out of bonds error.This array size is %d.", asize);
+        
         gen_code("\tCPA\tGR1,GR0");
         gen_code("\tJMI\tEROV");
         gen_code("\tLAD\tGR2,%d", asize - 1);

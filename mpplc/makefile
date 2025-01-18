@@ -10,7 +10,7 @@ mpplc: ${OBJS}
 #	${CC} ${CFLAGS} -o $@ $^ ${MYLIB}
 
 test: ${OBJS}
-	gcc -coverage -c fileHandle.c main.c scan.c parser.c idList.c
+	gcc -coverage -c fileHandle.c main.c scan.c parser.c idList.c makeCode.c
 	gcc -coverage -o mpplc $^
 	bash test.sh
 	gcov -b *.gcda

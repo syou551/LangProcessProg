@@ -19,44 +19,10 @@ void gen_code(char *code,...) {
     va_end(ap);
 }
 
-void print_code(char *code, ...){
-    va_list ap;
-    va_start(ap, code);
-
-    fprintf(cslfp,"\t");
-    vfprintf(cslfp, code, ap);
-
-    va_end(ap); 
-}
-
-void print_code_linebreak(){
-    fprintf(cslfp, "\n");
-}
-
-void gen_code_label(char *code, int label) {
-    fprintf(cslfp, "\t%s\tL%04d\n", code, label);
-}
-
 void gen_label(int label) { 
     fprintf(cslfp, "L%04d\n", label);
 }
 
-char *get_symbol_keyword(int token){
-    int i = 0;
-    for(i = 0;i < KEYWORDSIZE;i++){
-        if(token == key[i].keytoken){
-            return key[i].keyword;
-        }
-    }
-    for(i = 0;i < SYMBOLSIZE; i++){
-        if(token == sym[i].symtoken){
-            return sym[i].symbol;
-            //return; comment out for C2 coverage 
-        }
-    }
-
-    return NULL;
-}
 
 int push_label_list(int labelnum){
     if(labelroot == NULL){

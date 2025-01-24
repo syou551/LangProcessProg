@@ -2,6 +2,7 @@
 
 int token;
 int exist_iteration;
+int notvariable = 1;
 
 int parse_program(){
     token = scan();
@@ -323,9 +324,12 @@ int parse_variable(){
 
         print_space();
         token = scan();
+        notvariable = 1;
         if((tmp = parse_expression()) == S_ERROR)return S_ERROR;
         if(tmp != TINTEGER) return error("ERROR: expression next to array type isn't integer");
-        if(asize <= num_attr) return error("ERROR: out of bonds error.This array size is %d.", asize);
+        if(num_attr < 0 || asize <= num_attr) {
+            if(notvariable) return error("ERROR: out of bonds error.This array size is %d.", asize);
+        }
         if(token != TRSQPAREN)return error("ERROR: expect \"]\" next to expression");
         print_space();
         print_symbol_keyword(token);
@@ -417,6 +421,7 @@ int parse_factor(){
     int type, tmp;
     if(token == TNAME){
         if((type = parse_variable()) == S_ERROR) return S_ERROR;
+        notvariable = 0;
     }else if(token == TNUMBER || token == TFALSE || token == TTRUE || token == TSTRING){
         //print
         type = get_demand_type(token);
